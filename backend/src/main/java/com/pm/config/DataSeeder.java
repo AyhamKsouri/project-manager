@@ -4,6 +4,7 @@ import com.pm.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
@@ -24,7 +25,21 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
+        // Migration: Update any existing CHEF roles to OWNER
+        try {
+            projectUserRepository.findAll().stream()
+                .filter(pu -> pu.getProjectRole() != null && "CHEF".equals(pu.getProjectRole().name()))
+                .forEach(pu -> {
+                    pu.setProjectRole(ProjectRole.OWNER);
+                    projectUserRepository.save(pu);
+                });
+        } catch (Exception e) {
+            // Log the error but don't crash the seeder
+            System.err.println("Migration error: " + e.getMessage());
+        }
+
         if (!userRepository.existsByEmail("admin@pm.com")) {
             User admin = userRepository.save(User.builder().name("Admin").email("admin@pm.com").password(passwordEncoder.encode("password")).globalRole(GlobalRole.ADMIN).build());
             User chef = userRepository.save(User.builder().name("Chef").email("chef@pm.com").password(passwordEncoder.encode("password")).globalRole(GlobalRole.USER).skills("management, architecture").build());
@@ -32,8 +47,8 @@ public class DataSeeder implements CommandLineRunner {
 
             Project p1 = projectRepository.save(Project.builder().name("E-Commerce Platform").description("Building a modern e-commerce platform").methodology("Agile").build());
             
-            projectUserRepository.save(ProjectUser.builder().project(p1).user(admin).projectRole(ProjectRole.CHEF).build());
-            projectUserRepository.save(ProjectUser.builder().project(p1).user(chef).projectRole(ProjectRole.CHEF).build());
+            projectUserRepository.save(ProjectUser.builder().project(p1).user(admin).projectRole(ProjectRole.ADMIN).build());
+            projectUserRepository.save(ProjectUser.builder().project(p1).user(chef).projectRole(ProjectRole.OWNER).build());
             projectUserRepository.save(ProjectUser.builder().project(p1).user(member).projectRole(ProjectRole.MEMBER).build());
 
             taskRepository.save(Task.builder().title("Setup Database").description("Configure PostgreSQL with Docker").status(TaskStatus.TODO).priority("High").project(p1).assignee(member).build());

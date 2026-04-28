@@ -69,7 +69,7 @@ public class TaskController {
         
         if (newStatus == TaskStatus.COMPLETED && task.getStatus() == TaskStatus.IN_REVIEW) {
             ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(task.getProject().getId(), currentUser.getUser().getId()).orElseThrow();
-            if (projectUser.getProjectRole() != ProjectRole.CHEF) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Only Chef can validate task completion"));
+            if (projectUser.getProjectRole() != ProjectRole.OWNER && projectUser.getProjectRole() != ProjectRole.ADMIN) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Only Owners or Admins can validate task completion"));
         }
         task.setStatus(newStatus);
         Task updatedTask = taskRepository.save(task);

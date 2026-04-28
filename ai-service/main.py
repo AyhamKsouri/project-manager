@@ -39,6 +39,23 @@ class RiskAnalysisResponse(BaseModel):
     likely_delays: list[str]
     recommendations: list[str]
 
+class ProjectPlanRequest(BaseModel):
+    idea: str
+    methodology: str
+    team_members: list[dict] = []  # List of {name: str, skills: str, current_workload: int}
+
+class ProjectPlanResponse(BaseModel):
+    product_summary: str
+    target_users: list[str]
+    key_features: list[str]
+    recommended_team_roles: list[str]
+    timeline_estimate_weeks: int
+    epics: list[str]
+    milestones: list[str]
+    sprint_roadmap: list[str]
+    prioritized_tasks: list[TaskSuggestion]
+    risks: list[str]
+
 @app.post("/generate-tasks", response_model=TaskResponse)
 async def generate_tasks(request: TaskRequest):
     if not client:
@@ -145,6 +162,75 @@ async def analyze_project_risk(request: RiskAnalysisRequest):
     )
 
     return RiskAnalysisResponse.model_validate_json(chat_completion.choices[0].message.content)
+
+@app.post("/generate-project-plan", response_model=ProjectPlanResponse)
+async def generate_project_plan(request: ProjectPlanRequest):
+    if not client:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured on server")
+
+    prompt = f"""
+    You are a Senior Product Manager and Technical Lead. Transform the following raw idea into a professional, execution-ready project plan.
+    
+    Raw Idea: {request.idea}
+    Methodology: {request.methodology}
+    Team Members: {request.team_members}
+    
+    Your goal is to extract real business intent and create a high-quality SaaS/Mobile/Web product roadmap.
+    
+    RULES:
+    1. Product Summary: Concise explanation of the product's value proposition.
+    2. Target Users: Who will use this product?
+    3. Key Features: Strategic features that define the MVP and beyond.
+    4. Team Roles: Suggest roles based on the project needs.
+    5. Timeline: Realistic estimate in weeks.
+    6. Backlog: Generate at least 8-10 prioritized tasks. 
+       CRITICAL: Assign tasks to real team members from the provided list based on their skills and workload. 
+       If no members are provided or they don't fit, use placeholders like "Frontend Dev", "Backend Dev".
+    7. Roadmap: Define the sprint sequence according to {request.methodology}.
+    
+    Respond ONLY in JSON format matching this structure:
+    {{
+        "product_summary": "...",
+        "target_users": ["...", "..."],
+        "key_features": ["...", "..."],
+        "recommended_team_roles": ["...", "..."],
+        "timeline_estimate_weeks": 12,
+        "epics": ["...", "..."],
+        "milestones": ["...", "..."],
+        "sprint_roadmap": ["...", "..."],
+        "prioritized_tasks": [
+            {{
+                "title": "...",
+                "description": "...",
+                "assigned_to": "Member 1",
+                "status": "todo",
+                "priority": "high",
+                "story_points": 5,
+                "estimated_days": 3,
+                "deadline_offset_days": 7,
+                "sprint": "Sprint 1",
+                "depends_on": []
+            }}
+        ],
+        "risks": ["...", "..."]
+    }}
+    """
+
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are a senior product lead designed to output strict, high-quality project plans in JSON format."},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+            temperature=0.7,
+            max_tokens=4096,
+        )
+        content = chat_completion.choices[0].message.content
+        return ProjectPlanResponse.model_validate_json(content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI Planning Error: {str(e)}")
 
 @app.get("/health")
 async def health_check():

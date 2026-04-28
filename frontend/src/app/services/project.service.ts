@@ -24,6 +24,22 @@ export class ProjectService {
     return this.http.get<any[]>(`${this.apiUrl}/${projectId}/members`);
   }
 
+  addMember(projectId: number, email: string, role: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${projectId}/members`, { email, role });
+  }
+
+  updateMemberRole(projectId: number, userId: number, role: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${projectId}/members/${userId}`, { role });
+  }
+
+  removeMember(projectId: number, userId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${projectId}/members/${userId}`);
+  }
+
+  updateProfileSkills(skills: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/profile/skills`, { skills });
+  }
+
   analyzeProjectRisk(projectId: number): Observable<any> {
     return this.http.post<any>(`/api/ai/${projectId}/analyze-risk`, {});
   }

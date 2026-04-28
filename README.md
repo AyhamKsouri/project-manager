@@ -7,7 +7,7 @@ ProManager is a modern, full-stack project management application designed to st
 - **📊 Dynamic Kanban Board**: Drag-and-drop tasks across different statuses (To Do, In Progress, Review, Done).
 - **🤖 AI Task Generation**: Automatically generate realistic tasks based on project descriptions and team skills using the Groq AI API.
 - **🔍 AI Risk Analysis**: Identify bottlenecks, overloaded team members, and potential delays with AI-driven insights.
-- **👥 Team Management**: Assign roles (CHEF, MEMBER) and manage project collaborators.
+- **👥 Team Management**: Assign roles (OWNER, ADMIN, MEMBER, VIEWER) and manage project collaborators.
 - **📈 Real-time Statistics**: Track project progress with live task and member counts.
 - **🎨 Modern UI/UX**: Clean, responsive interface with smooth animations and intuitive design.
 - **🔒 Secure Authentication**: JWT-based authentication with role-based access control.

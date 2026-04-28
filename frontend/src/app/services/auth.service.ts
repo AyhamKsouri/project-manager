@@ -41,6 +41,10 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
+  getCurrentUser(): any {
+    return this.getUser();
+  }
+
   getUser(): any {
     const userJson = localStorage.getItem('user');
     if (!userJson) return null;

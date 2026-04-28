@@ -14,7 +14,157 @@
             </span>
             <span class="text-muted small">•</span>
             <span class="text-muted small fw-medium">{{ totalTasksCount }} Total Tasks</span>
+            <!-- Member Management Modal -->
+  <div class="modal fade show" *ngIf="showMembersModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-0 p-4">
+          <h5 class="modal-title fw-bold text-dark">Project Members</h5>
+          <button type="button" class="btn-close" (click)="showMembersModal = false"></button>
+        </div>
+        <div class="modal-body p-4 pt-0">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="text-muted mb-0">Manage roles and permissions for your team.</p>
+            <button class="btn btn-primary-indigo btn-sm rounded-3 px-3 fw-bold" (click)="showInviteModal = true" *ngIf="canManageMembers()">
+              <i class="bi bi-person-plus me-1"></i> Invite Member
+            </button>
           </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle border-0">
+              <thead>
+                <tr class="text-muted small text-uppercase">
+                  <th class="border-0 px-0">Member</th>
+                  <th class="border-0">Role</th>
+                  <th class="border-0">Workload</th>
+                  <th class="border-0 text-end" *ngIf="canManageMembers()">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of projectMembers">
+                  <td class="px-0 border-0 py-3">
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-circle me-3">{{ member.user.name.charAt(0) }}</div>
+                      <div>
+                        <div class="fw-bold text-dark">{{ member.user.name }}</div>
+                        <div class="small text-muted">{{ member.user.email }}</div>
+                      </div>
+                    </div>
+                    <div class="mt-2" *ngIf="member.user.skills">
+                      <span class="badge bg-light text-muted border rounded-pill me-1" *ngFor="let skill of member.user.skills.split(',')">
+                        {{ skill.trim() }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="border-0">
+                    <select class="form-select form-select-sm rounded-pill border-0 bg-light fw-medium w-auto" 
+                            [(ngModel)]="member.projectRole" 
+                            (change)="updateMemberRole(member.user.id, member.projectRole)"
+                            [disabled]="!canManageMembers() || member.projectRole === 'OWNER'">
+                      <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+                    </select>
+                  </td>
+                  <td class="border-0">
+                    <div class="d-flex align-items-center">
+                      <div class="progress flex-grow-1 me-2" style="height: 6px; min-width: 60px;">
+                        <div class="progress-bar" [ngClass]="getMemberWorkload(member.user.id) > 5 ? 'bg-danger' : 'bg-success'" 
+                             [style.width.%]="(getMemberWorkload(member.user.id) / 10) * 100"></div>
+                      </div>
+                      <span class="small fw-bold">{{ getMemberWorkload(member.user.id) }} active</span>
+                    </div>
+                  </td>
+                  <td class="border-0 text-end" *ngIf="canManageMembers()">
+                    <button class="btn btn-link text-danger p-0" (click)="removeMember(member.user.id)" *ngIf="member.projectRole !== 'OWNER'">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite Member Modal -->
+  <div class="modal fade show" *ngIf="showInviteModal" style="display: block; background: rgba(0,0,0,0.4); z-index: 1060;" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-0 p-4">
+          <h5 class="modal-title fw-bold">Invite Team Member</h5>
+          <button type="button" class="btn-close" (click)="showInviteModal = false"></button>
+        </div>
+        <div class="modal-body p-4 pt-0">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase">Email Address</label>
+            <input type="email" class="form-control rounded-3" [(ngModel)]="inviteEmail" placeholder="colleague@example.com">
+          </div>
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted text-uppercase">Role</label>
+            <select class="form-select rounded-3" [(ngModel)]="inviteRole">
+              <option value="ADMIN">Admin</option>
+              <option value="MEMBER">Member</option>
+              <option value="VIEWER">Viewer</option>
+            </select>
+          </div>
+          <button class="btn btn-primary-indigo w-100 py-2 fw-bold rounded-3" (click)="inviteMember()">Send Invite</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Task Modal Enhancement -->
+  <div class="modal fade show" *ngIf="showCreateTaskModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-0 p-4">
+          <h5 class="modal-title fw-bold text-dark">Create New Task</h5>
+          <button type="button" class="btn-close" (click)="showCreateTaskModal = false"></button>
+        </div>
+        <div class="modal-body p-4 pt-0">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase">Title</label>
+            <input type="text" class="form-control rounded-3" [(ngModel)]="newTask.title" placeholder="What needs to be done?">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase">Description</label>
+            <textarea class="form-control rounded-3" [(ngModel)]="newTask.description" rows="3" placeholder="Add more details..."></textarea>
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted text-uppercase">Priority</label>
+              <select class="form-select rounded-3" [(ngModel)]="newTask.priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted text-uppercase d-flex justify-content-between">
+                Assignee
+                <span class="text-primary cursor-pointer" style="font-size: 0.7rem;" (click)="suggestAssignee()">
+                  <i class="bi bi-magic"></i> Auto
+                </span>
+              </label>
+              <select class="form-select rounded-3" [(ngModel)]="newTask.assigneeId">
+                <option [ngValue]="null">Unassigned</option>
+                <option *ngFor="let member of projectMembers" [value]="member.user.id">
+                  {{ member.user.name }} ({{ getMemberWorkload(member.user.id) }} active)
+                </option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary-indigo w-100 py-2 fw-bold rounded-3 shadow-sm" (click)="createTask()" [disabled]="!newTask.title">
+            Create Task
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
         </div>
       </div>
       
@@ -38,6 +188,9 @@
           <button class="btn btn-outline-danger-modern rounded-3 px-4 fw-bold" (click)="analyzeRisk()">
             <i class="bi bi-shield-shaded me-1"></i> Risk Intel
           </button>
+          <button class="btn btn-white border rounded-3 px-4 fw-bold shadow-sm" (click)="showMembersModal = true">
+            <i class="bi bi-people me-1"></i> Members
+          </button>
         </div>
       </div>
     </div>
@@ -57,7 +210,7 @@
             <span class="count-badge">{{ todo.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #todoList="cdkDropList" cdkDropList [cdkDropListData]="todo" [cdkDropListConnectedTo]="[inProgressList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'TODO')">
-            <div class="task-card" *ngFor="let task of todo" cdkDrag>
+            <div class="task-card" *ngFor="let task of todo" cdkDrag (click)="openTaskDetail(task)">
               <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -103,7 +256,7 @@
             <span class="count-badge">{{ inProgress.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #inProgressList="cdkDropList" cdkDropList [cdkDropListData]="inProgress" [cdkDropListConnectedTo]="[todoList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
-            <div class="task-card" *ngFor="let task of inProgress" cdkDrag>
+            <div class="task-card" *ngFor="let task of inProgress" cdkDrag (click)="openTaskDetail(task)">
               <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -149,7 +302,7 @@
             <span class="count-badge">{{ inReview.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #inReviewList="cdkDropList" cdkDropList [cdkDropListData]="inReview" [cdkDropListConnectedTo]="[todoList, inProgressList, completedList]" (cdkDropListDropped)="drop($event, 'IN_REVIEW')">
-            <div class="task-card" *ngFor="let task of inReview" cdkDrag>
+            <div class="task-card" *ngFor="let task of inReview" cdkDrag (click)="openTaskDetail(task)">
               <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
@@ -195,7 +348,7 @@
             <span class="count-badge">{{ completed.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #completedList="cdkDropList" cdkDropList [cdkDropListData]="completed" [cdkDropListConnectedTo]="[todoList, inProgressList, inReviewList]" (cdkDropListDropped)="drop($event, 'COMPLETED')">
-            <div class="task-card task-completed-card" *ngFor="let task of completed" cdkDrag>
+            <div class="task-card task-completed-card" *ngFor="let task of completed" cdkDrag (click)="openTaskDetail(task)">
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h6 class="task-title text-decoration-line-through text-muted">{{ task.title }}</h6>
@@ -245,7 +398,7 @@
 
       <div class="row g-4">
         <div class="col-md-4 col-lg-3" *ngFor="let task of tasksBySprint[sprint]">
-          <div class="task-card h-100 shadow-sm">
+          <div class="task-card h-100 shadow-sm" (click)="openTaskDetail(task)">
             <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
             <div class="card-content p-3">
               <div class="d-flex justify-content-between align-items-start mb-2">
@@ -413,13 +566,21 @@
                   <option value="High">High</option>
                   <option value="Medium">Medium</option>
                   <option value="Low">Low</option>
+                  <option value="Critical">Critical</option>
                 </select>
               </div>
               <div class="col-6">
-                <label class="form-label fw-semibold text-muted small">ASSIGNEE</label>
+                <label class="form-label fw-semibold text-muted small d-flex justify-content-between">
+                  ASSIGNEE
+                  <span class="text-primary cursor-pointer" style="font-size: 0.7rem;" (click)="suggestAssignee()">
+                    <i class="bi bi-magic"></i> Auto
+                  </span>
+                </label>
                 <select class="form-select border-0 bg-light shadow-none" name="assigneeId" [(ngModel)]="newTask.assigneeId">
                   <option [ngValue]="null">Unassigned</option>
-                  <option *ngFor="let member of projectMembers" [value]="member.id">{{ member.name }}</option>
+                  <option *ngFor="let member of projectMembers" [value]="member.user.id">
+                    {{ member.user.name }} ({{ getMemberWorkload(member.user.id) }} active)
+                  </option>
                 </select>
               </div>
             </div>
@@ -429,6 +590,83 @@
             <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold" [disabled]="!newTask.title">Add Task</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Detail Modal -->
+  <div class="modal fade show" *ngIf="showTaskDetailModal && selectedTask" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-0 bg-white py-3 px-4 d-flex align-items-center">
+          <div class="d-flex align-items-center">
+            <span class="status-indicator-dot me-2" [ngClass]="selectedTask.status.toLowerCase()"></span>
+            <span class="text-uppercase small fw-bold text-muted letter-spacing-1">{{ selectedTask.status.replace('_', ' ') }}</span>
+          </div>
+          <button type="button" class="btn-close" (click)="closeTaskDetail()"></button>
+        </div>
+        <div class="modal-body p-4 bg-white">
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h4 class="fw-bold text-dark mb-0">{{ selectedTask.title }}</h4>
+              <span class="priority-badge" [ngClass]="selectedTask.priority?.toLowerCase() || 'medium'">
+                {{ selectedTask.priority }}
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Description</label>
+            <p class="text-dark mb-0 lh-base" style="white-space: pre-wrap;">{{ selectedTask.description || 'No description provided.' }}</p>
+          </div>
+
+          <div class="row g-4 mb-4">
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Assignee</label>
+              <div class="d-flex align-items-center" *ngIf="selectedTask.assignee">
+                <div class="avatar-circle me-2">{{ selectedTask.assignee.name.charAt(0) }}</div>
+                <span class="fw-medium text-dark">{{ selectedTask.assignee.name }}</span>
+              </div>
+              <span class="text-muted italic small" *ngIf="!selectedTask.assignee">No one assigned</span>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Sprint</label>
+              <div class="d-flex align-items-center">
+                <i class="bi bi-flag text-primary me-2"></i>
+                <span class="fw-medium text-dark">{{ selectedTask.sprintName || 'Backlog' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4 mb-2">
+            <div class="col-6" *ngIf="selectedTask.storyPoints">
+              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Story Points</label>
+              <div class="d-flex align-items-center">
+                <i class="bi bi-layers text-indigo me-2"></i>
+                <span class="fw-medium text-dark">{{ selectedTask.storyPoints }} Points</span>
+              </div>
+            </div>
+            <div class="col-6" *ngIf="selectedTask.dueDate">
+              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Due Date</label>
+              <div class="d-flex align-items-center">
+                <i class="bi bi-calendar3 text-danger me-2"></i>
+                <span class="fw-medium text-dark">{{ selectedTask.dueDate | date:'MMMM d, y' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-top" *ngIf="selectedTask.dependsOn && selectedTask.dependsOn.length > 0">
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Dependencies</label>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge bg-light text-dark border rounded-pill px-3 py-2 fw-medium" *ngFor="let dep of selectedTask.dependsOn">
+                <i class="bi bi-link-45deg me-1"></i> {{ dep }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light p-3">
+          <button type="button" class="btn btn-white border rounded-pill px-4 fw-bold shadow-sm" (click)="closeTaskDetail()">Close</button>
+        </div>
       </div>
     </div>
   </div>
@@ -514,6 +752,37 @@
     background: #fef2f2;
     border-color: #fecaca;
     color: #991b1b;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+
+  .progress {
+    background-color: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    transition: width 0.6s ease;
+  }
+
+  .table-hover tbody tr:hover {
+    background-color: #f8fafc;
   }
 
   /* Methodology Badges */

@@ -26,9 +26,18 @@ export class KanbanComponent implements OnInit {
 
   showCreateTaskModal = false;
   showRiskAnalysisModal = false;
+  showTaskDetailModal = false;
+  showMembersModal = false;
+  showInviteModal = false;
+  selectedTask: any = null;
   riskAnalysis: any = null;
   analyzingRisk = false;
   newTask = { title: '', description: '', priority: 'Medium', assigneeId: null };
+  inviteEmail = '';
+  inviteRole = 'MEMBER';
+  
+  currentUserRole: string = 'MEMBER';
+  availableRoles = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
 
   get totalTasksCount(): number {
     return this.todo.length + this.inProgress.length + this.inReview.length + this.completed.length;
@@ -54,6 +63,16 @@ export class KanbanComponent implements OnInit {
       this.loadProjectMembers();
       this.connectWebSocket();
     });
+  }
+
+  openTaskDetail(task: any): void {
+    this.selectedTask = task;
+    this.showTaskDetailModal = true;
+  }
+
+  closeTaskDetail(): void {
+    this.showTaskDetailModal = false;
+    this.selectedTask = null;
   }
 
   analyzeRisk(): void {
@@ -98,13 +117,73 @@ export class KanbanComponent implements OnInit {
 
   loadProjectMembers(): void {
     this.projectService.getProjectMembers(this.projectId).subscribe({
-      next: (members: any[]) => {
-        this.projectMembers = members;
+      next: (memberships: any[]) => {
+        this.projectMembers = memberships;
+        // Determine current user's role
+        const currentUserId = this.authService.getCurrentUser()?.id;
+        const myMembership = memberships.find(m => m.user.id === currentUserId);
+        if (myMembership) {
+          this.currentUserRole = myMembership.projectRole;
+        }
       },
       error: (err) => {
         console.error('Error loading project members:', err);
       }
     });
+  }
+
+  inviteMember(): void {
+    if (!this.inviteEmail) return;
+    this.projectService.addMember(this.projectId, this.inviteEmail, this.inviteRole).subscribe({
+      next: () => {
+        this.loadProjectMembers();
+        this.showInviteModal = false;
+        this.inviteEmail = '';
+      },
+      error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to invite'))
+    });
+  }
+
+  updateMemberRole(userId: number, role: string): void {
+    this.projectService.updateMemberRole(this.projectId, userId, role).subscribe({
+      next: () => this.loadProjectMembers(),
+      error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to update role'))
+    });
+  }
+
+  removeMember(userId: number): void {
+    if (!confirm('Are you sure you want to remove this member?')) return;
+    this.projectService.removeMember(this.projectId, userId).subscribe({
+      next: () => this.loadProjectMembers(),
+      error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to remove member'))
+    });
+  }
+
+  canManageMembers(): boolean {
+    return this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+  }
+
+  getMemberWorkload(userId: number): number {
+    const allTasks = [...this.todo, ...this.inProgress, ...this.inReview];
+    return allTasks.filter(t => t.assignee?.id === userId).length;
+  }
+
+  suggestAssignee(): void {
+    // Basic auto-assignment logic based on workload
+    if (this.projectMembers.length === 0) return;
+    
+    let bestMember = this.projectMembers[0];
+    let minWorkload = this.getMemberWorkload(bestMember.user.id);
+
+    this.projectMembers.forEach(m => {
+      const workload = this.getMemberWorkload(m.user.id);
+      if (workload < minWorkload) {
+        minWorkload = workload;
+        bestMember = m;
+      }
+    });
+
+    this.newTask.assigneeId = bestMember.user.id;
   }
 
   groupTasksBySprint(tasks: any[]): void {
@@ -172,7 +251,7 @@ export class KanbanComponent implements OnInit {
       const task = event.previousContainer.data[event.previousIndex];
       transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
       this.taskService.updateTaskStatus(task.id, newStatus).subscribe({
-        error: (err: any) => { this.loadTasks(); if(err.status === 403) alert('Only the Chef can validate task completion!'); }
+        error: (err: any) => { this.loadTasks(); if(err.status === 403) alert('Only Owners or Admins can validate task completion!'); }
       });
     }
   }
@@ -181,12 +260,17 @@ export class KanbanComponent implements OnInit {
     if (!this.project) return;
     
     // Format team skills: "Name:Skill1,Skill2; Name2:Skill3"
-    // Since we don't have explicit skills in the User model, we'll just send names
-    const teamSkills = this.projectMembers.map(m => `${m.name}:Developer`).join('; ');
+    // Use real user skills and active task counts for smarter assignment
+    const teamData = this.projectMembers.map(m => {
+      const skills = m.user.skills || 'Developer';
+      const activeTasks = this.getMemberWorkload(m.user.id);
+      return `${m.user.name}:${skills} (${activeTasks} active tasks)`;
+    }).join('; ');
+
     const projectDesc = this.project.description || this.project.name;
     const methodology = this.project.methodology || 'Agile';
 
-    this.taskService.generateAiTasks(this.projectId, projectDesc, teamSkills, methodology).subscribe({
+    this.taskService.generateAiTasks(this.projectId, projectDesc, teamData, methodology).subscribe({
       next: (tasks: any[]) => {
         alert(`Successfully generated ${tasks.length} tasks!`);
         // The WebSocket will trigger loadTasks() automatically, 

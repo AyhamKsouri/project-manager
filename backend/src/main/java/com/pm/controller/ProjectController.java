@@ -37,44 +37,59 @@ public class ProjectController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @Transactional
-    public ResponseEntity<Project> createProject(@RequestBody Project project, @AuthenticationPrincipal UserDetailsImpl currentUser) {
-        if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<?> createProject(@RequestBody Project project, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        if (currentUser == null || currentUser.getUser() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User session invalid");
         }
 
-        User user = userRepository.findById(currentUser.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+        try {
+            User user = userRepository.findById(currentUser.getUser().getId())
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
-        Project savedProject = projectRepository.save(project);
-        
-        // Automatically assign the creator as CHEF
-        projectUserRepository.save(ProjectUser.builder()
-                .project(savedProject)
-                .user(user)
-                .projectRole(ProjectRole.CHEF)
-                .build());
-        
-        savedProject.setTaskCount(0L);
-        savedProject.setMemberCount(1L);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedProject);
+            Project savedProject = projectRepository.save(project);
+            
+            // Automatically assign the creator as OWNER
+            projectUserRepository.save(ProjectUser.builder()
+                    .project(savedProject)
+                    .user(user)
+                    .projectRole(ProjectRole.OWNER)
+                    .build());
+            
+            savedProject.setTaskCount(0L);
+            savedProject.setMemberCount(1L);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedProject);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating project: " + e.getMessage());
+        }
     }
 
     @GetMapping("/my-projects")
-    public ResponseEntity<List<Project>> getMyProjects(@AuthenticationPrincipal UserDetailsImpl currentUser) {
-        if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<?> getMyProjects(@AuthenticationPrincipal UserDetailsImpl currentUser) {
+        if (currentUser == null || currentUser.getUser() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User session invalid");
         }
-        List<ProjectUser> memberships = projectUserRepository.findByUserId(currentUser.getUser().getId());
         
-        List<Project> projects = memberships.stream()
-                .map(ProjectUser::getProject)
-                .peek(project -> {
-                    project.setTaskCount(taskRepository.countByProjectId(project.getId()));
-                    project.setMemberCount(projectUserRepository.countByProjectId(project.getId()));
-                })
-                .collect(Collectors.toList());
-                
-        return ResponseEntity.ok(projects);
+        try {
+            List<ProjectUser> memberships = projectUserRepository.findByUserId(currentUser.getUser().getId());
+            
+            List<Project> projects = memberships.stream()
+                    .map(ProjectUser::getProject)
+                    .filter(project -> project != null)
+                    .peek(project -> {
+                        try {
+                            project.setTaskCount(taskRepository.countByProjectId(project.getId()));
+                            project.setMemberCount(projectUserRepository.countByProjectId(project.getId()));
+                        } catch (Exception e) {
+                            project.setTaskCount(0L);
+                            project.setMemberCount(0L);
+                        }
+                    })
+                    .collect(Collectors.toList());
+                    
+            return ResponseEntity.ok(projects);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error loading projects: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{projectId}")
@@ -89,11 +104,94 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/members")
-    public ResponseEntity<List<User>> getProjectMembers(@PathVariable Long projectId) {
+    public ResponseEntity<List<ProjectUser>> getProjectMembers(@PathVariable Long projectId) {
         List<ProjectUser> memberships = projectUserRepository.findByProjectId(projectId);
-        List<User> members = memberships.stream()
-                .map(ProjectUser::getUser)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(members);
+        return ResponseEntity.ok(memberships);
+    }
+
+    @PostMapping("/{projectId}/members")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @Transactional
+    public ResponseEntity<?> addMember(@PathVariable Long projectId, @RequestBody MemberRequest request, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        ProjectUser currentMembership = projectUserRepository.findByProjectIdAndUserId(projectId, currentUser.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("Not a project member"));
+        
+        if (currentMembership.getProjectRole() != ProjectRole.OWNER && currentMembership.getProjectRole() != ProjectRole.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only Owners or Admins can add members");
+        }
+
+        User userToAdd = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (projectUserRepository.findByProjectIdAndUserId(projectId, userToAdd.getId()).isPresent()) {
+            return ResponseEntity.badRequest().body("User is already a member");
+        }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectUser newMember = ProjectUser.builder()
+                .project(project)
+                .user(userToAdd)
+                .projectRole(request.getRole())
+                .build();
+
+        projectUserRepository.save(newMember);
+        return ResponseEntity.ok(newMember);
+    }
+
+    @PutMapping("/{projectId}/members/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @Transactional
+    public ResponseEntity<?> updateMemberRole(@PathVariable Long projectId, @PathVariable Long userId, @RequestBody RoleUpdateRequest request, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        ProjectUser currentMembership = projectUserRepository.findByProjectIdAndUserId(projectId, currentUser.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("Not a project member"));
+        
+        if (currentMembership.getProjectRole() != ProjectRole.OWNER && currentMembership.getProjectRole() != ProjectRole.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only Owners or Admins can update roles");
+        }
+
+        ProjectUser memberToUpdate = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+
+        // Only owner can change another admin or owner
+        if (memberToUpdate.getProjectRole() == ProjectRole.OWNER && currentMembership.getProjectRole() != ProjectRole.OWNER) {
+             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only Owner can change Owner");
+        }
+
+        memberToUpdate.setProjectRole(request.getRole());
+        projectUserRepository.save(memberToUpdate);
+        return ResponseEntity.ok(memberToUpdate);
+    }
+
+    @DeleteMapping("/{projectId}/members/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @Transactional
+    public ResponseEntity<?> removeMember(@PathVariable Long projectId, @PathVariable Long userId, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        ProjectUser currentMembership = projectUserRepository.findByProjectIdAndUserId(projectId, currentUser.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("Not a project member"));
+        
+        if (currentMembership.getProjectRole() != ProjectRole.OWNER && currentMembership.getProjectRole() != ProjectRole.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only Owners or Admins can remove members");
+        }
+
+        ProjectUser memberToRemove = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+
+        if (memberToRemove.getProjectRole() == ProjectRole.OWNER) {
+            return ResponseEntity.badRequest().body("Cannot remove the Owner");
+        }
+
+        projectUserRepository.delete(memberToRemove);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/profile/skills")
+    public ResponseEntity<?> updateSkills(@RequestBody SkillsUpdateRequest request, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        User user = userRepository.findById(currentUser.getUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setSkills(request.getSkills());
+        userRepository.save(user);
+        return ResponseEntity.ok(user);
     }
 }
