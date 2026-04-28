@@ -1,0 +1,801 @@
+<div class="kanban-wrapper animate-fade-in">
+  <!-- Header Section -->
+  <div class="kanban-header-container px-4 py-4 mb-4 bg-white border-bottom shadow-sm">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div class="d-flex align-items-center">
+        <button class="btn btn-icon-back me-3 shadow-sm" routerLink="/dashboard" title="Back to Dashboard">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="h3 fw-bold text-dark mb-1">{{ project?.name || 'Project Kanban Board' }}</h1>
+          <div class="d-flex align-items-center gap-2">
+            <span class="methodology-badge" [ngClass]="project?.methodology?.toLowerCase() || 'agile'">
+              {{ project?.methodology || 'Agile' }}
+            </span>
+            <span class="text-muted small">•</span>
+            <span class="text-muted small fw-medium">{{ totalTasksCount }} Total Tasks</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="view-switcher-modern bg-light p-1 rounded-3 d-flex me-md-2">
+          <button class="btn btn-sm rounded-2 px-3 transition-all" [class.active]="activeView === 'kanban'" (click)="switchView('kanban')">
+            <i class="bi bi-kanban me-1"></i> Board
+          </button>
+          <button class="btn btn-sm rounded-2 px-3 transition-all" [class.active]="activeView === 'sprint'" (click)="switchView('sprint')">
+            <i class="bi bi-view-stacked me-1"></i> Sprints
+          </button>
+        </div>
+        
+        <div class="action-buttons d-flex gap-2">
+          <button class="btn btn-primary-indigo rounded-3 px-4 fw-bold shadow-sm" (click)="showCreateTaskModal = true">
+            <i class="bi bi-plus-lg me-1"></i> Add Task
+          </button>
+          <button class="btn btn-ai-sparkle rounded-3 px-4 fw-bold shadow-sm" (click)="requestAiTasks()">
+            <i class="bi bi-magic me-1"></i> AI Planner
+          </button>
+          <button class="btn btn-outline-danger-modern rounded-3 px-4 fw-bold" (click)="analyzeRisk()">
+            <i class="bi bi-shield-shaded me-1"></i> Risk Intel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanban Board Grid -->
+  <div class="kanban-board-container animate-slide-up" *ngIf="activeView === 'kanban'">
+    <div class="kanban-row">
+      <!-- To Do -->
+      <div class="kanban-column-container">
+        <div class="kanban-column status-todo-col">
+          <div class="column-header">
+            <div class="d-flex align-items-center">
+              <span class="status-dot todo"></span>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">To Do</h5>
+            </div>
+            <span class="count-badge">{{ todo.length }}</span>
+          </div>
+          <div class="kanban-list custom-scrollbar" #todoList="cdkDropList" cdkDropList [cdkDropListData]="todo" [cdkDropListConnectedTo]="[inProgressList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'TODO')">
+            <div class="task-card" *ngFor="let task of todo" cdkDrag>
+              <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
+              <div class="card-content">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="task-title">{{ task.title }}</h6>
+                  <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
+                </div>
+                <p class="task-desc">{{ task.description }}</p>
+                
+                <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
+                  <span class="meta-item" *ngIf="task.storyPoints">
+                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
+                  </span>
+                  <span class="meta-item" *ngIf="task.dueDate">
+                    <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
+                  </span>
+                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
+                    <i class="bi bi-flag"></i> {{ task.sprintName }}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="risk-badge" *ngIf="task.priority === 'critical'">
+                    <i class="bi bi-exclamation-circle-fill text-danger small"></i>
+                  </div>
+                  <div class="assignee ms-auto" *ngIf="task.assignee">
+                    <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress -->
+      <div class="kanban-column-container">
+        <div class="kanban-column status-progress-col">
+          <div class="column-header">
+            <div class="d-flex align-items-center">
+              <span class="status-dot progress"></span>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">In Progress</h5>
+            </div>
+            <span class="count-badge">{{ inProgress.length }}</span>
+          </div>
+          <div class="kanban-list custom-scrollbar" #inProgressList="cdkDropList" cdkDropList [cdkDropListData]="inProgress" [cdkDropListConnectedTo]="[todoList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
+            <div class="task-card" *ngFor="let task of inProgress" cdkDrag>
+              <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
+              <div class="card-content">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="task-title">{{ task.title }}</h6>
+                  <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
+                </div>
+                <p class="task-desc">{{ task.description }}</p>
+                
+                <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
+                  <span class="meta-item" *ngIf="task.storyPoints">
+                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
+                  </span>
+                  <span class="meta-item" *ngIf="task.dueDate">
+                    <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
+                  </span>
+                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
+                    <i class="bi bi-flag"></i> {{ task.sprintName }}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="risk-badge" *ngIf="task.priority === 'critical'">
+                    <i class="bi bi-exclamation-circle-fill text-danger small"></i>
+                  </div>
+                  <div class="assignee ms-auto" *ngIf="task.assignee">
+                    <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Review -->
+      <div class="kanban-column-container">
+        <div class="kanban-column status-review-col">
+          <div class="column-header">
+            <div class="d-flex align-items-center">
+              <span class="status-dot review"></span>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">In Review</h5>
+            </div>
+            <span class="count-badge">{{ inReview.length }}</span>
+          </div>
+          <div class="kanban-list custom-scrollbar" #inReviewList="cdkDropList" cdkDropList [cdkDropListData]="inReview" [cdkDropListConnectedTo]="[todoList, inProgressList, completedList]" (cdkDropListDropped)="drop($event, 'IN_REVIEW')">
+            <div class="task-card" *ngFor="let task of inReview" cdkDrag>
+              <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
+              <div class="card-content">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="task-title">{{ task.title }}</h6>
+                  <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
+                </div>
+                <p class="task-desc">{{ task.description }}</p>
+                
+                <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
+                  <span class="meta-item" *ngIf="task.storyPoints">
+                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
+                  </span>
+                  <span class="meta-item" *ngIf="task.dueDate">
+                    <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
+                  </span>
+                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
+                    <i class="bi bi-flag"></i> {{ task.sprintName }}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="risk-badge" *ngIf="task.priority === 'critical'">
+                    <i class="bi bi-exclamation-circle-fill text-danger small"></i>
+                  </div>
+                  <div class="assignee ms-auto" *ngIf="task.assignee">
+                    <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed -->
+      <div class="kanban-column-container">
+        <div class="kanban-column status-completed-col">
+          <div class="column-header">
+            <div class="d-flex align-items-center">
+              <span class="status-dot completed"></span>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">Completed</h5>
+            </div>
+            <span class="count-badge">{{ completed.length }}</span>
+          </div>
+          <div class="kanban-list custom-scrollbar" #completedList="cdkDropList" cdkDropList [cdkDropListData]="completed" [cdkDropListConnectedTo]="[todoList, inProgressList, inReviewList]" (cdkDropListDropped)="drop($event, 'COMPLETED')">
+            <div class="task-card task-completed-card" *ngFor="let task of completed" cdkDrag>
+              <div class="card-content">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="task-title text-decoration-line-through text-muted">{{ task.title }}</h6>
+                  <i class="bi bi-check-circle-fill text-success"></i>
+                </div>
+                <p class="task-desc">{{ task.description }}</p>
+
+                <div class="task-metadata mb-3 d-flex flex-wrap gap-2 opacity-50">
+                  <span class="meta-item" *ngIf="task.storyPoints">
+                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
+                  </span>
+                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
+                    <i class="bi bi-flag"></i> {{ task.sprintName }}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center" *ngIf="task.assignee">
+                  <div class="assignee ms-auto">
+                    <div class="avatar-circle bg-light text-muted border" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sprint Grouped View -->
+  <div class="sprint-view-container px-4 py-2 animate-slide-up" *ngIf="activeView === 'sprint'">
+    <div class="sprint-group mb-5" *ngFor="let sprint of sprints">
+      <div class="sprint-header d-flex align-items-center mb-4">
+        <div class="sprint-icon-circle me-3 shadow-sm">
+          <i class="bi bi-flag-fill"></i>
+        </div>
+        <div>
+          <h3 class="h5 fw-bold mb-0 text-dark">{{ sprint }}</h3>
+          <span class="text-muted small fw-medium">{{ tasksBySprint[sprint].length }} Tasks</span>
+        </div>
+        <div class="ms-auto">
+          <span class="badge rounded-pill bg-white text-dark border shadow-sm px-3 py-2 fw-semibold small">
+            {{ sprint === 'Backlog' ? 'Unscheduled' : 'Active Sprint' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4 col-lg-3" *ngFor="let task of tasksBySprint[sprint]">
+          <div class="task-card h-100 shadow-sm">
+            <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
+            <div class="card-content p-3">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="task-title fw-bold text-dark mb-0">{{ task.title }}</h6>
+                <span class="status-indicator-dot" [ngClass]="task.status.toLowerCase()" [title]="task.status"></span>
+              </div>
+              <p class="task-desc small text-muted mb-3">{{ task.description }}</p>
+              
+              <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
+                <span class="meta-item" *ngIf="task.storyPoints">
+                  <i class="bi bi-layers"></i> {{ task.storyPoints }}
+                </span>
+                <span class="priority-badge-sm" [ngClass]="task.priority?.toLowerCase() || 'medium'">
+                  {{ task.priority }}
+                </span>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <div class="risk-badge" *ngIf="task.priority === 'critical'">
+                  <i class="bi bi-exclamation-circle-fill text-danger small"></i>
+                </div>
+                <div class="assignee ms-auto" *ngIf="task.assignee">
+                  <div class="avatar-circle-sm" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Sprint View -->
+    <div class="text-center py-5" *ngIf="sprints.length === 0">
+      <div class="empty-state-icon mb-3">
+        <i class="bi bi-calendar-x text-muted opacity-25" style="font-size: 4rem;"></i>
+      </div>
+      <h4 class="text-muted fw-bold">No Sprints Found</h4>
+      <p class="text-muted small">Generate tasks with AI to automatically organize your project into sprints.</p>
+    </div>
+  </div>
+
+  <!-- Risk Analysis Modal -->
+  <div class="modal fade show" *ngIf="showRiskAnalysisModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header bg-danger text-white border-0 py-3">
+          <h5 class="modal-title fw-bold d-flex align-items-center">
+            <i class="bi bi-shield-shaded me-2"></i> Project Risk Intelligence
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="showRiskAnalysisModal = false"></button>
+        </div>
+        <div class="modal-body p-4 bg-light">
+          <!-- Loading State -->
+          <div class="text-center py-5" *ngIf="analyzingRisk">
+            <div class="spinner-grow text-danger mb-3" role="status"></div>
+            <h5 class="text-dark fw-bold">Analyzing Project Health...</h5>
+            <p class="text-muted small">Our AI is scanning tasks, team load, and potential bottlenecks.</p>
+          </div>
+
+          <!-- Analysis Content -->
+          <div *ngIf="!analyzingRisk && riskAnalysis">
+            <div class="row g-4">
+              <!-- Bottlenecks -->
+              <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-danger mb-3 d-flex align-items-center">
+                      <i class="bi bi-diagram-3 me-2"></i> Critical Bottlenecks
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.bottlenecks">
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-2 small mt-1"></i>
+                        <span class="small text-dark">{{ item }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Overloaded Members -->
+              <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-warning mb-3 d-flex align-items-center">
+                      <i class="bi bi-people me-2"></i> Resource Load
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.overloaded_members">
+                        <i class="bi bi-person-x-fill text-danger me-2 small mt-1"></i>
+                        <span class="small text-dark">{{ item }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Likely Delays -->
+              <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-primary mb-3 d-flex align-items-center">
+                      <i class="bi bi-clock-history me-2"></i> Likely Delays
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.likely_delays">
+                        <i class="bi bi-calendar-x text-primary me-2 small mt-1"></i>
+                        <span class="small text-dark">{{ item }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendations -->
+              <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                  <div class="card-body">
+                    <h6 class="fw-bold text-success mb-3 d-flex align-items-center">
+                      <i class="bi bi-lightbulb me-2"></i> Recommendations
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.recommendations">
+                        <i class="bi bi-check2-circle text-success me-2 small mt-1"></i>
+                        <span class="small text-dark">{{ item }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-white py-3">
+          <button type="button" class="btn btn-light rounded-pill px-4" (click)="showRiskAnalysisModal = false">Close Analysis</button>
+          <button type="button" class="btn btn-danger rounded-pill px-4" (click)="analyzeRisk()" *ngIf="!analyzingRisk">
+            <i class="bi bi-arrow-clockwise me-1"></i> Re-Analyze
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Task Modal -->
+  <div class="modal fade show" *ngIf="showCreateTaskModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-0 pb-0 px-4 pt-4">
+          <h5 class="modal-title fw-bold text-dark">Create New Task</h5>
+          <button type="button" class="btn-close shadow-none" (click)="showCreateTaskModal = false"></button>
+        </div>
+        <form (ngSubmit)="createTask()">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted small">TITLE</label>
+              <input type="text" class="form-control form-control-lg border-0 bg-light shadow-none" name="title" [(ngModel)]="newTask.title" required placeholder="Enter task title...">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold text-muted small">DESCRIPTION</label>
+              <textarea class="form-control border-0 bg-light shadow-none" name="description" [(ngModel)]="newTask.description" rows="3" placeholder="Add some details about the task..."></textarea>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold text-muted small">PRIORITY</label>
+                <select class="form-select border-0 bg-light shadow-none" name="priority" [(ngModel)]="newTask.priority">
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold text-muted small">ASSIGNEE</label>
+                <select class="form-select border-0 bg-light shadow-none" name="assigneeId" [(ngModel)]="newTask.assigneeId">
+                  <option [ngValue]="null">Unassigned</option>
+                  <option *ngFor="let member of projectMembers" [value]="member.id">{{ member.name }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-4">
+            <button type="button" class="btn btn-light px-4 rounded-pill" (click)="showCreateTaskModal = false">Cancel</button>
+            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold" [disabled]="!newTask.title">Add Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Global Animations */
+  .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+  .animate-slide-up { animation: slideUp 0.6s ease-out; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { 
+    from { opacity: 0; transform: translateY(20px); } 
+    to { opacity: 1; transform: translateY(0); } 
+  }
+
+  /* Wrapper Layout */
+  .kanban-wrapper {
+    background-color: #f8fafc;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .kanban-header-container {
+    z-index: 10;
+  }
+
+  /* Button Styles */
+  .btn-icon-back {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.2s;
+  }
+  .btn-icon-back:hover {
+    background: #f1f5f9;
+    color: #4f46e5;
+    border-color: #4f46e5;
+    transform: translateX(-2px);
+  }
+
+  .btn-primary-indigo {
+    background: #4f46e5;
+    border: none;
+    color: white;
+    transition: all 0.2s;
+  }
+  .btn-primary-indigo:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  }
+
+  .btn-ai-sparkle {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #4f46e5;
+    transition: all 0.2s;
+  }
+  .btn-ai-sparkle:hover {
+    background: #f5f3ff;
+    border-color: #c4b5fd;
+    color: #5b21b6;
+    transform: translateY(-1px);
+  }
+
+  .btn-outline-danger-modern {
+    background: transparent;
+    border: 1px solid #fee2e2;
+    color: #dc2626;
+    transition: all 0.2s;
+  }
+  .btn-outline-danger-modern:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+
+  /* Methodology Badges */
+  .methodology-badge {
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .methodology-badge.agile { background: #e0e7ff; color: #4338ca; }
+  .methodology-badge.scrum { background: #dcfce7; color: #166534; }
+  .methodology-badge.kanban { background: #fef9c3; color: #854d0e; }
+  .methodology-badge.waterfall { background: #fee2e2; color: #991b1b; }
+
+  /* View Switcher */
+  .view-switcher-modern {
+    border: 1px solid #e2e8f0;
+  }
+  .view-switcher-modern .btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    border: none;
+  }
+  .view-switcher-modern .btn.active {
+    background: white;
+    color: #4f46e5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  /* Kanban Board Layout */
+  .kanban-board-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+  }
+  
+  .kanban-row {
+    display: flex;
+    gap: 1.25rem;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .kanban-column-container {
+    flex: 1;
+    min-width: 300px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kanban-column {
+    background: #f1f5f9;
+    border-radius: 24px;
+    padding: 1.25rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+
+  .status-todo-col { border-top: 4px solid #94a3b8; }
+  .status-progress-col { border-top: 4px solid #4f46e5; }
+  .status-review-col { border-top: 4px solid #f59e0b; }
+  .status-completed-col { border-top: 4px solid #10b981; }
+
+  .column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  .status-dot.todo { background: #94a3b8; }
+  .status-dot.progress { background: #4f46e5; box-shadow: 0 0 8px rgba(79, 70, 229, 0.4); }
+  .status-dot.review { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
+  .status-dot.completed { background: #10b981; }
+
+  .letter-spacing-1 {
+    letter-spacing: 1px;
+  }
+
+  .count-badge {
+    background: white;
+    color: #475569;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Task Card Improvements */
+  .kanban-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.25rem;
+  }
+
+  .task-card {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    border: 1px solid #e2e8f0;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    cursor: grab;
+  }
+  .task-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+    border-color: #4f46e5;
+  }
+
+  .card-priority-line {
+    width: 4px;
+    flex-shrink: 0;
+  }
+  .card-priority-line.critical { background: #7f1d1d; }
+  .card-priority-line.high { background: #ef4444; }
+  .card-priority-line.medium { background: #f59e0b; }
+  .card-priority-line.low { background: #10b981; }
+
+  .card-content {
+    padding: 1.25rem;
+    flex: 1;
+  }
+
+  .task-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .task-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .meta-item {
+    font-size: 0.7rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .priority-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .priority-badge.critical { background: #fee2e2; color: #7f1d1d; border: 1px solid #fecaca; }
+  .priority-badge.high { background: #fef2f2; color: #dc2626; }
+  .priority-badge.medium { background: #fffbeb; color: #d97706; }
+  .priority-badge.low { background: #f0fdf4; color: #16a34a; }
+
+  .avatar-circle {
+    width: 28px;
+    height: 28px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .avatar-circle-sm {
+    width: 24px;
+    height: 24px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border: 1px solid white;
+  }
+
+  .priority-badge-sm {
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .priority-badge-sm.critical { background: #fee2e2; color: #7f1d1d; }
+  .priority-badge-sm.high { background: #fef2f2; color: #dc2626; }
+  .priority-badge-sm.medium { background: #fffbeb; color: #d97706; }
+  .priority-badge-sm.low { background: #f0fdf4; color: #16a34a; }
+
+  .status-indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .status-indicator-dot.todo { background: #94a3b8; }
+  .status-indicator-dot.in_progress { background: #4f46e5; }
+  .status-indicator-dot.in_review { background: #f59e0b; }
+  .status-indicator-dot.completed { background: #10b981; }
+
+  .risk-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: #fff1f2;
+    border-radius: 50%;
+    border: 1px solid #ffe4e6;
+  }
+
+  /* Custom Scrollbar */
+  .kanban-list::-webkit-scrollbar { width: 6px; }
+  .kanban-list::-webkit-scrollbar-track { background: transparent; }
+  .kanban-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+  /* Drag & Drop */
+  .cdk-drag-preview {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    background: white;
+    transform: rotate(2deg);
+  }
+  .cdk-drag-placeholder { opacity: 0.1; }
+
+  /* Sprint View */
+  .sprint-view-container {
+    padding: 2rem;
+    background: #f8fafc;
+  }
+  .sprint-group {
+    background: white;
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .sprint-icon-circle {
+    width: 44px;
+    height: 44px;
+    background: #f5f3ff;
+    color: #4f46e5;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+</style>
