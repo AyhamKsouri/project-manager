@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
+import { ToastService, Toast } from './services/toast.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -40,6 +42,23 @@ import { Router } from '@angular/router';
       </div>
     </div>
 
+    <!-- Toast Notifications Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+      <div *ngFor="let toast of toasts$ | async" 
+           class="toast show mb-2 border-0 shadow-lg animate-slide-in" 
+           [ngClass]="getToastClass(toast.type)"
+           role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header border-0 bg-transparent text-white py-2">
+          <i class="bi me-2" [ngClass]="getToastIcon(toast.type)"></i>
+          <strong class="me-auto">{{ toast.title || 'Notification' }}</strong>
+          <button type="button" class="btn-close btn-close-white shadow-none" (click)="toastService.remove(toast.id)"></button>
+        </div>
+        <div class="toast-body text-white pt-0 pb-3">
+          {{ toast.message }}
+        </div>
+      </div>
+    </div>
+
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
@@ -53,6 +72,20 @@ import { Router } from '@angular/router';
       body {
         background-color: var(--bg-light);
       }
+
+      .animate-slide-in {
+        animation: slideIn 0.3s ease-out forwards;
+      }
+
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      .toast-success { background: #10b981; }
+      .toast-error { background: #ef4444; }
+      .toast-warning { background: #f59e0b; }
+      .toast-info { background: #3b82f6; }
 
       .logo-icon-sm {
         width: 32px;
@@ -104,11 +137,31 @@ import { Router } from '@angular/router';
     </style>
   `
 })
-export class AppComponent {
-  constructor(public authService: AuthService, private router: Router) {}
+export class AppComponent implements OnInit {
+  toasts$: Observable<Toast[]>;
+
+  constructor(public authService: AuthService, private router: Router, public toastService: ToastService) {
+    this.toasts$ = this.toastService.getToasts();
+  }
+
+  ngOnInit(): void {}
 
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  getToastClass(type: string): string {
+    return `toast-${type}`;
+  }
+
+  getToastIcon(type: string): string {
+    switch (type) {
+      case 'success': return 'bi-check-circle-fill';
+      case 'error': return 'bi-exclamation-triangle-fill';
+      case 'warning': return 'bi-exclamation-circle-fill';
+      case 'info': return 'bi-info-circle-fill';
+      default: return 'bi-info-circle-fill';
+    }
   }
 }

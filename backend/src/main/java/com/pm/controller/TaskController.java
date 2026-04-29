@@ -33,7 +33,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<Task> createTask(@RequestBody Map<String, Object> payload, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         try {
             Long projectId = Long.valueOf(payload.get("projectId").toString());
             Long assigneeId = payload.get("assigneeId") != null ? Long.valueOf(payload.get("assigneeId").toString()) : null;
@@ -48,6 +48,7 @@ public class TaskController {
                     .priority(payload.get("priority").toString())
                     .project(project)
                     .assignee(assignee)
+                    .creator(currentUser.getUser())
                     .build();
             
             Task savedTask = taskRepository.save(task);
@@ -67,8 +68,14 @@ public class TaskController {
         Task task = taskRepository.findById(taskId).orElseThrow();
         TaskStatus newStatus = TaskStatus.valueOf(payload.get("status"));
         
+        ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(task.getProject().getId(), currentUser.getUser().getId()).orElseThrow();
+        
+        // Move task rule: Only Assignee can move the task
+        if (task.getAssignee() == null || !task.getAssignee().getId().equals(currentUser.getUser().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Only the assignee can move this task"));
+        }
+
         if (newStatus == TaskStatus.COMPLETED && task.getStatus() == TaskStatus.IN_REVIEW) {
-            ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(task.getProject().getId(), currentUser.getUser().getId()).orElseThrow();
             if (projectUser.getProjectRole() != ProjectRole.OWNER && projectUser.getProjectRole() != ProjectRole.ADMIN) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Only Owners or Admins can validate task completion"));
         }
         task.setStatus(newStatus);
@@ -78,8 +85,16 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}/assignee")
-    public ResponseEntity<?> updateTaskAssignee(@PathVariable Long taskId, @RequestBody Map<String, Long> payload) {
+    public ResponseEntity<?> updateTaskAssignee(@PathVariable Long taskId, @RequestBody Map<String, Long> payload, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("Task not found"));
+        
+        ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(task.getProject().getId(), currentUser.getUser().getId()).orElseThrow();
+        
+        // Reassign task rule: Only Admin or Manager (Owner)
+        if (projectUser.getProjectRole() != ProjectRole.OWNER && projectUser.getProjectRole() != ProjectRole.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Only Owners or Admins can reassign tasks"));
+        }
+
         Long assigneeId = payload.get("assigneeId");
         
         if (assigneeId != null) {
@@ -92,5 +107,45 @@ public class TaskController {
         Task updatedTask = taskRepository.save(task);
         messagingTemplate.convertAndSend("/topic/project/" + task.getProject().getId(), updatedTask);
         return ResponseEntity.ok(updatedTask);
+    }
+
+    @PutMapping("/{taskId}")
+    public ResponseEntity<?> updateTask(@PathVariable Long taskId, @RequestBody Map<String, Object> payload, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+        ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(task.getProject().getId(), currentUser.getUser().getId()).orElseThrow();
+
+        // Edit description rule: Creator + Manager (Owner/Admin) + Assignee
+        boolean isCreator = task.getCreator() != null && task.getCreator().getId().equals(currentUser.getUser().getId());
+        boolean isManager = projectUser.getProjectRole() == ProjectRole.OWNER || projectUser.getProjectRole() == ProjectRole.ADMIN;
+        boolean isAssignee = task.getAssignee() != null && task.getAssignee().getId().equals(currentUser.getUser().getId());
+
+        if (!isCreator && !isManager && !isAssignee) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You do not have permission to edit this task"));
+        }
+
+        if (payload.containsKey("title")) task.setTitle(payload.get("title").toString());
+        if (payload.containsKey("description")) task.setDescription(payload.get("description").toString());
+        
+        Task updatedTask = taskRepository.save(task);
+        messagingTemplate.convertAndSend("/topic/project/" + task.getProject().getId(), updatedTask);
+        return ResponseEntity.ok(updatedTask);
+    }
+
+    @DeleteMapping("/{taskId}")
+    public ResponseEntity<?> deleteTask(@PathVariable Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+        ProjectUser projectUser = projectUserRepository.findByProjectIdAndUserId(task.getProject().getId(), currentUser.getUser().getId()).orElseThrow();
+
+        // Delete task rule: Admin (Owner/Admin) or Creator
+        boolean isCreator = task.getCreator() != null && task.getCreator().getId().equals(currentUser.getUser().getId());
+        boolean isAdmin = projectUser.getProjectRole() == ProjectRole.OWNER || projectUser.getProjectRole() == ProjectRole.ADMIN;
+
+        if (!isCreator && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Only Admins or the Creator can delete this task"));
+        }
+
+        taskRepository.delete(task);
+        messagingTemplate.convertAndSend("/topic/project/" + task.getProject().getId(), Map.of("deletedTaskId", taskId));
+        return ResponseEntity.ok().build();
     }
 }

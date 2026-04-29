@@ -41,4 +41,7 @@ public class Task {
     
     @ManyToOne @JoinColumn(name = "assignee_id", nullable = true)
     private User assignee;
+
+    @ManyToOne @JoinColumn(name = "creator_id", nullable = true)
+    private User creator;
 }

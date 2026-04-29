@@ -244,12 +244,18 @@
             <span class="count-badge">{{ todo.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #todoList="cdkDropList" cdkDropList [cdkDropListData]="todo" [cdkDropListConnectedTo]="[inProgressList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'TODO')">
-            <div class="task-card" *ngFor="let task of todo" cdkDrag (click)="openTaskDetail(task)">
+            <div class="task-card" *ngFor="let task of todo" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
+                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
               <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h6 class="task-title">{{ task.title }}</h6>
                   <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
+                </div>
+                
+                <!-- Tooltip for non-assignees -->
+                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
+                  <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
                 
@@ -290,12 +296,18 @@
             <span class="count-badge">{{ inProgress.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #inProgressList="cdkDropList" cdkDropList [cdkDropListData]="inProgress" [cdkDropListConnectedTo]="[todoList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
-            <div class="task-card" *ngFor="let task of inProgress" cdkDrag (click)="openTaskDetail(task)">
+            <div class="task-card" *ngFor="let task of inProgress" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
+                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
               <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h6 class="task-title">{{ task.title }}</h6>
                   <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
+                </div>
+
+                <!-- Tooltip for non-assignees -->
+                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
+                  <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
                 
@@ -336,12 +348,18 @@
             <span class="count-badge">{{ inReview.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #inReviewList="cdkDropList" cdkDropList [cdkDropListData]="inReview" [cdkDropListConnectedTo]="[todoList, inProgressList, completedList]" (cdkDropListDropped)="drop($event, 'IN_REVIEW')">
-            <div class="task-card" *ngFor="let task of inReview" cdkDrag (click)="openTaskDetail(task)">
+            <div class="task-card" *ngFor="let task of inReview" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
+                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
               <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h6 class="task-title">{{ task.title }}</h6>
                   <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
+                </div>
+
+                <!-- Tooltip for non-assignees -->
+                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
+                  <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
                 
@@ -382,11 +400,17 @@
             <span class="count-badge">{{ completed.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #completedList="cdkDropList" cdkDropList [cdkDropListData]="completed" [cdkDropListConnectedTo]="[todoList, inProgressList, inReviewList]" (cdkDropListDropped)="drop($event, 'COMPLETED')">
-            <div class="task-card task-completed-card" *ngFor="let task of completed" cdkDrag (click)="openTaskDetail(task)">
+            <div class="task-card task-completed-card" *ngFor="let task of completed" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
+                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
               <div class="card-content">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <h6 class="task-title text-decoration-line-through text-muted">{{ task.title }}</h6>
                   <i class="bi bi-check-circle-fill text-success"></i>
+                </div>
+
+                <!-- Tooltip for non-assignees -->
+                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
+                  <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
 
@@ -651,7 +675,20 @@
 
           <div class="mb-4">
             <label class="form-label small fw-bold text-muted text-uppercase mb-2">Description</label>
-            <p class="text-dark mb-0 lh-base" style="white-space: pre-wrap;">{{ selectedTask.description || 'No description provided.' }}</p>
+            <textarea class="form-control border-0 bg-light shadow-none rounded-3 fw-medium p-3" 
+                      rows="4" [(ngModel)]="selectedTask.description"
+                      [disabled]="!canEditTask(selectedTask)"></textarea>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2" *ngIf="canEditTask(selectedTask) || canDeleteTask(selectedTask)">
+            <button class="btn btn-outline-danger-modern border-0 rounded-3 px-4 fw-bold" 
+                    *ngIf="canDeleteTask(selectedTask)" (click)="deleteTask(selectedTask.id)">
+              <i class="bi bi-trash3 me-1"></i> Delete
+            </button>
+            <button class="btn btn-primary-indigo rounded-3 px-4 fw-bold shadow-sm" 
+                    *ngIf="canEditTask(selectedTask)" (click)="updateTaskDetails()">
+              <i class="bi bi-check2-all me-1"></i> Save Changes
+            </button>
           </div>
 
           <div class="row g-4 mb-4">
@@ -659,7 +696,8 @@
               <label class="form-label small fw-bold text-muted text-uppercase mb-2">Assignee</label>
               <select class="form-select form-select-sm border-0 bg-light shadow-none rounded-3 fw-medium" 
                       [ngModel]="selectedTask.assignee?.id || 'null'"
-                      (change)="updateTaskAssignee(selectedTask.id, $any($event.target).value)">
+                      (change)="updateTaskAssignee(selectedTask.id, $any($event.target).value)"
+                      [disabled]="!canReassign()">
                 <option value="null">Unassigned</option>
                 <option *ngFor="let member of projectMembers" [value]="member.user.id">
                   {{ member.user.name }}
@@ -1115,5 +1153,22 @@
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
+  }
+  .task-card.drag-disabled {
+    cursor: not-allowed !important;
+    opacity: 0.65;
+    background: #f8f9fa;
+  }
+  .drag-lock-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #adb5bd;
+    font-size: 14px;
+    z-index: 5;
+  }
+  .task-card.drag-disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
   }
 </style>

@@ -6,6 +6,8 @@ import { Client } from '@stomp/stompjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
+import { ToastService } from '../../services/toast.service';
+
 @Component({
   selector: 'app-kanban',
   templateUrl: './kanban.component.html'
@@ -38,6 +40,7 @@ export class KanbanComponent implements OnInit {
   searchResults: any[] = [];
   
   currentUserRole: string = 'MEMBER';
+  currentUserId: number | null = null;
   availableRoles = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
 
   get totalTasksCount(): number {
@@ -49,7 +52,8 @@ export class KanbanComponent implements OnInit {
     private projectService: ProjectService,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -122,6 +126,7 @@ export class KanbanComponent implements OnInit {
         this.projectMembers = memberships;
         // Determine current user's role
         const currentUser = this.authService.getCurrentUser();
+        this.currentUserId = currentUser?.id || null;
         const myMembership = memberships.find(m => 
           (currentUser?.id && m.user.id === currentUser.id) || 
           (currentUser?.email && m.user.email === currentUser.email)
@@ -144,8 +149,9 @@ export class KanbanComponent implements OnInit {
         this.showInviteModal = false;
         this.inviteEmail = '';
         this.searchResults = [];
+        this.toastService.success('Member added successfully');
       },
-      error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to invite'))
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to invite')
     });
   }
 
@@ -170,21 +176,48 @@ export class KanbanComponent implements OnInit {
 
   updateMemberRole(userId: number, role: string): void {
     this.projectService.updateMemberRole(this.projectId, userId, role).subscribe({
-      next: () => this.loadProjectMembers(),
-      error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to update role'))
+      next: () => {
+        this.loadProjectMembers();
+        this.toastService.success('Role updated successfully');
+      },
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to update role')
     });
   }
 
   removeMember(userId: number): void {
     if (!confirm('Are you sure you want to remove this member?')) return;
     this.projectService.removeMember(this.projectId, userId).subscribe({
-      next: () => this.loadProjectMembers(),
-      error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to remove member'))
+      next: () => {
+        this.loadProjectMembers();
+        this.toastService.success('Member removed');
+      },
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to remove member')
     });
   }
 
   canManageMembers(): boolean {
     return this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+  }
+
+  isAssignee(task: any): boolean {
+    return task.assignee?.id === this.currentUserId;
+  }
+
+  canReassign(): boolean {
+    return this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+  }
+
+  canEditTask(task: any): boolean {
+    const isCreator = task.creator && task.creator.id === this.currentUserId;
+    const isManager = this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+    const isAssignee = task.assignee?.id === this.currentUserId;
+    return isCreator || isManager || isAssignee;
+  }
+
+  canDeleteTask(task: any): boolean {
+    const isCreator = task.creator && task.creator.id === this.currentUserId;
+    const isAdmin = this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+    return isCreator || isAdmin;
   }
 
   getMemberWorkload(userId: number): number {
@@ -273,9 +306,23 @@ export class KanbanComponent implements OnInit {
     if (event.previousContainer === event.container) { moveItemInArray(event.container.data, event.previousIndex, event.currentIndex); } 
     else {
       const task = event.previousContainer.data[event.previousIndex];
+      
+      // Move task rule: Only Assignee can move the task
+      if (!this.isAssignee(task)) {
+        this.toastService.warning('Only the assignee can move this task', 'Permission Denied');
+        return;
+      }
+
       transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
       this.taskService.updateTaskStatus(task.id, newStatus).subscribe({
-        error: (err: any) => { this.loadTasks(); if(err.status === 403) alert('Only Owners or Admins can validate task completion!'); }
+        error: (err: any) => { 
+          this.loadTasks(); 
+          if(err.status === 403) {
+            this.toastService.error('Only Owners or Admins can validate task completion!', 'Restricted');
+          } else {
+            this.toastService.error(err.error?.message || 'Failed to update status');
+          }
+        }
       });
     }
   }
@@ -284,13 +331,12 @@ export class KanbanComponent implements OnInit {
     const id = assigneeId === 'null' ? null : +assigneeId;
     this.taskService.updateTaskAssignee(taskId, id).subscribe({
       next: (updatedTask) => {
-        // Update selected task reference if it's the one being modified
         if (this.selectedTask && this.selectedTask.id === taskId) {
           this.selectedTask = updatedTask;
         }
-        // WebSocket will refresh the board
+        this.toastService.success('Assignee updated');
       },
-      error: (err) => alert('Error updating assignee: ' + (err.error?.message || 'Unknown error'))
+      error: (err) => this.toastService.error(err.error?.message || 'Error updating assignee')
     });
   }
 
@@ -310,12 +356,35 @@ export class KanbanComponent implements OnInit {
 
     this.taskService.generateAiTasks(this.projectId, projectDesc, teamData, methodology).subscribe({
       next: (tasks: any[]) => {
-        alert(`Successfully generated ${tasks.length} tasks!`);
-        // The WebSocket will trigger loadTasks() automatically, 
-        // but we can also do it manually just in case
+        this.toastService.success(`Successfully generated ${tasks.length} tasks!`, 'AI Planner');
         this.loadTasks();
       },
-      error: (err: any) => alert('Error: ' + (err.error?.error || 'Unknown error'))
+      error: (err: any) => this.toastService.error(err.error?.error || 'Unknown error', 'AI Error')
+    });
+  }
+
+  updateTaskDetails(): void {
+    if (!this.selectedTask) return;
+    this.taskService.updateTask(this.selectedTask.id, {
+      title: this.selectedTask.title,
+      description: this.selectedTask.description
+    }).subscribe({
+      next: () => {
+        this.showTaskDetailModal = false;
+        this.toastService.success('Task updated successfully');
+      },
+      error: (err) => this.toastService.error(err.error?.message || 'Failed to update task')
+    });
+  }
+
+  deleteTask(taskId: number): void {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    this.taskService.deleteTask(taskId).subscribe({
+      next: () => {
+        this.showTaskDetailModal = false;
+        this.toastService.success('Task deleted');
+      },
+      error: (err) => this.toastService.error(err.error?.message || 'Failed to delete task')
     });
   }
 
