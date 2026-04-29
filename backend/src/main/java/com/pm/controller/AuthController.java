@@ -40,6 +40,8 @@ public class AuthController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", jwt);
+            response.put("id", userDetails.getUser().getId());
+            response.put("name", userDetails.getUser().getName());
             response.put("email", userDetails.getUsername());
             
             String role = userDetails.getAuthorities().stream()
@@ -63,5 +65,10 @@ public class AuthController {
         User user = User.builder().name(signUpRequest.get("name")).email(signUpRequest.get("email")).password(encoder.encode(signUpRequest.get("password"))).globalRole(GlobalRole.USER).skills(signUpRequest.getOrDefault("skills", "")).build();
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully!"));
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<?> searchUsers(@RequestParam String query) {
+        return ResponseEntity.ok(userRepository.findByEmailContainingIgnoreCaseOrNameContainingIgnoreCase(query, query));
     }
 }

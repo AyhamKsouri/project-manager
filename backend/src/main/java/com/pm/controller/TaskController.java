@@ -76,4 +76,21 @@ public class TaskController {
         messagingTemplate.convertAndSend("/topic/project/" + task.getProject().getId(), updatedTask);
         return ResponseEntity.ok(updatedTask);
     }
+
+    @PutMapping("/{taskId}/assignee")
+    public ResponseEntity<?> updateTaskAssignee(@PathVariable Long taskId, @RequestBody Map<String, Long> payload) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("Task not found"));
+        Long assigneeId = payload.get("assigneeId");
+        
+        if (assigneeId != null) {
+            User assignee = userRepository.findById(assigneeId).orElseThrow(() -> new RuntimeException("User not found"));
+            task.setAssignee(assignee);
+        } else {
+            task.setAssignee(null);
+        }
+        
+        Task updatedTask = taskRepository.save(task);
+        messagingTemplate.convertAndSend("/topic/project/" + task.getProject().getId(), updatedTask);
+        return ResponseEntity.ok(updatedTask);
+    }
 }

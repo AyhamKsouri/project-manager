@@ -35,6 +35,7 @@ export class KanbanComponent implements OnInit {
   newTask = { title: '', description: '', priority: 'Medium', assigneeId: null };
   inviteEmail = '';
   inviteRole = 'MEMBER';
+  searchResults: any[] = [];
   
   currentUserRole: string = 'MEMBER';
   availableRoles = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
@@ -120,8 +121,11 @@ export class KanbanComponent implements OnInit {
       next: (memberships: any[]) => {
         this.projectMembers = memberships;
         // Determine current user's role
-        const currentUserId = this.authService.getCurrentUser()?.id;
-        const myMembership = memberships.find(m => m.user.id === currentUserId);
+        const currentUser = this.authService.getCurrentUser();
+        const myMembership = memberships.find(m => 
+          (currentUser?.id && m.user.id === currentUser.id) || 
+          (currentUser?.email && m.user.email === currentUser.email)
+        );
         if (myMembership) {
           this.currentUserRole = myMembership.projectRole;
         }
@@ -139,9 +143,29 @@ export class KanbanComponent implements OnInit {
         this.loadProjectMembers();
         this.showInviteModal = false;
         this.inviteEmail = '';
+        this.searchResults = [];
       },
       error: (err) => alert('Error: ' + (err.error?.message || err.error || 'Failed to invite'))
     });
+  }
+
+  onSearchUsers(query: string): void {
+    if (query.length < 2) {
+      this.searchResults = [];
+      return;
+    }
+    this.authService.searchUsers(query).subscribe({
+      next: (users) => {
+        // Filter out users who are already members
+        const memberEmails = this.projectMembers.map(m => m.user.email);
+        this.searchResults = users.filter(u => !memberEmails.includes(u.email));
+      }
+    });
+  }
+
+  selectUser(user: any): void {
+    this.inviteEmail = user.email;
+    this.searchResults = [];
   }
 
   updateMemberRole(userId: number, role: string): void {
@@ -254,6 +278,20 @@ export class KanbanComponent implements OnInit {
         error: (err: any) => { this.loadTasks(); if(err.status === 403) alert('Only Owners or Admins can validate task completion!'); }
       });
     }
+  }
+
+  updateTaskAssignee(taskId: number, assigneeId: any): void {
+    const id = assigneeId === 'null' ? null : +assigneeId;
+    this.taskService.updateTaskAssignee(taskId, id).subscribe({
+      next: (updatedTask) => {
+        // Update selected task reference if it's the one being modified
+        if (this.selectedTask && this.selectedTask.id === taskId) {
+          this.selectedTask = updatedTask;
+        }
+        // WebSocket will refresh the board
+      },
+      error: (err) => alert('Error updating assignee: ' + (err.error?.message || 'Unknown error'))
+    });
   }
 
   requestAiTasks(): void {

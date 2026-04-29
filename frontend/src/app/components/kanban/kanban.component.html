@@ -88,27 +88,58 @@
   </div>
 
   <!-- Invite Member Modal -->
-  <div class="modal fade show" *ngIf="showInviteModal" style="display: block; background: rgba(0,0,0,0.4); z-index: 1060;" tabindex="-1">
+  <div class="modal fade show" *ngIf="showInviteModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1060;" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4">
-        <div class="modal-header border-0 p-4">
-          <h5 class="modal-title fw-bold">Invite Team Member</h5>
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-0 p-4 pb-0 bg-white">
+          <h5 class="modal-title fw-bold text-dark">Add Team Member</h5>
           <button type="button" class="btn-close" (click)="showInviteModal = false"></button>
         </div>
-        <div class="modal-body p-4 pt-0">
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted text-uppercase">Email Address</label>
-            <input type="email" class="form-control rounded-3" [(ngModel)]="inviteEmail" placeholder="colleague@example.com">
+        <div class="modal-body p-4 bg-white">
+          <p class="text-muted small mb-4">Add a user to your project to start collaborating and dividing tasks.</p>
+          
+          <div class="mb-3 position-relative">
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">User Email or Name</label>
+            <div class="input-group">
+              <span class="input-group-text border-0 bg-light rounded-start-3"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control border-0 bg-light shadow-none rounded-end-3 py-2" 
+                     [(ngModel)]="inviteEmail" (ngModelChange)="onSearchUsers($event)"
+                     placeholder="Search by name or email...">
+            </div>
+            
+            <!-- Search Results Dropdown -->
+            <div class="search-results-dropdown shadow-lg rounded-3 mt-1 position-absolute w-100 bg-white border" 
+                 *ngIf="searchResults.length > 0" style="z-index: 1070; max-height: 200px; overflow-y: auto;">
+              <div class="list-group list-group-flush">
+                <button type="button" class="list-group-item list-group-item-action border-0 py-2" 
+                        *ngFor="let user of searchResults" (click)="selectUser(user)">
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-circle-sm me-2 bg-primary text-white" style="width: 30px; height: 30px; font-size: 12px;">
+                      {{ user.name.charAt(0) }}
+                    </div>
+                    <div>
+                      <div class="fw-bold small">{{ user.name }}</div>
+                      <div class="text-muted smaller">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
+          
           <div class="mb-4">
-            <label class="form-label small fw-bold text-muted text-uppercase">Role</label>
-            <select class="form-select rounded-3" [(ngModel)]="inviteRole">
-              <option value="ADMIN">Admin</option>
-              <option value="MEMBER">Member</option>
-              <option value="VIEWER">Viewer</option>
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Project Role</label>
+            <select class="form-select border-0 bg-light shadow-none rounded-3 py-2 fw-medium" [(ngModel)]="inviteRole">
+              <option value="ADMIN">Admin (Can manage tasks & members)</option>
+              <option value="MEMBER" selected>Member (Can update tasks)</option>
+              <option value="VIEWER">Viewer (Read-only access)</option>
             </select>
           </div>
-          <button class="btn btn-primary-indigo w-100 py-2 fw-bold rounded-3" (click)="inviteMember()">Send Invite</button>
+          
+          <button class="btn btn-primary-indigo w-100 py-3 fw-bold rounded-3 shadow-sm" 
+                  (click)="inviteMember()" [disabled]="!inviteEmail">
+            <i class="bi bi-person-plus-fill me-2"></i> Add to Project
+          </button>
         </div>
       </div>
     </div>
@@ -181,6 +212,9 @@
         <div class="action-buttons d-flex gap-2">
           <button class="btn btn-primary-indigo rounded-3 px-4 fw-bold shadow-sm" (click)="showCreateTaskModal = true">
             <i class="bi bi-plus-lg me-1"></i> Add Task
+          </button>
+          <button class="btn btn-success-modern rounded-3 px-4 fw-bold shadow-sm" (click)="showInviteModal = true" *ngIf="canManageMembers()">
+            <i class="bi bi-person-plus me-1"></i> Add Member
           </button>
           <button class="btn btn-ai-sparkle rounded-3 px-4 fw-bold shadow-sm" (click)="requestAiTasks()">
             <i class="bi bi-magic me-1"></i> AI Planner
@@ -623,11 +657,14 @@
           <div class="row g-4 mb-4">
             <div class="col-6">
               <label class="form-label small fw-bold text-muted text-uppercase mb-2">Assignee</label>
-              <div class="d-flex align-items-center" *ngIf="selectedTask.assignee">
-                <div class="avatar-circle me-2">{{ selectedTask.assignee.name.charAt(0) }}</div>
-                <span class="fw-medium text-dark">{{ selectedTask.assignee.name }}</span>
-              </div>
-              <span class="text-muted italic small" *ngIf="!selectedTask.assignee">No one assigned</span>
+              <select class="form-select form-select-sm border-0 bg-light shadow-none rounded-3 fw-medium" 
+                      [ngModel]="selectedTask.assignee?.id || 'null'"
+                      (change)="updateTaskAssignee(selectedTask.id, $any($event.target).value)">
+                <option value="null">Unassigned</option>
+                <option *ngFor="let member of projectMembers" [value]="member.user.id">
+                  {{ member.user.name }}
+                </option>
+              </select>
             </div>
             <div class="col-6">
               <label class="form-label small fw-bold text-muted text-uppercase mb-2">Sprint</label>
@@ -727,6 +764,18 @@
     background: #4338ca;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  }
+
+  .btn-success-modern {
+    background: #10b981;
+    border: none;
+    color: white;
+    transition: all 0.2s;
+  }
+  .btn-success-modern:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
   }
 
   .btn-ai-sparkle {

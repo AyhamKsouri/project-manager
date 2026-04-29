@@ -15,6 +15,10 @@ export class TaskService {
     return this.http.put(`${this.apiUrl}/${taskId}/status`, { status });
   }
 
+  updateTaskAssignee(taskId: number, assigneeId: number | null): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${taskId}/assignee`, { assigneeId });
+  }
+
   createTask(task: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, task);
   }

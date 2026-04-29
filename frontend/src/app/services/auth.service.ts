@@ -41,6 +41,10 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
+  searchUsers(query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/users/search`, { params: { query } });
+  }
+
   getCurrentUser(): any {
     return this.getUser();
   }
