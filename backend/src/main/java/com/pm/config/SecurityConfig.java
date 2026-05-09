@@ -37,7 +37,13 @@ public class SecurityConfig {
             logger.error("Unauthorized error: {} for request: {} {}", authException.getMessage(), request.getMethod(), request.getRequestURI());
             response.setStatus(401);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+            String json = String.format(
+                "{\"timestamp\": \"%s\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"%s\", \"path\": \"%s\"}",
+                java.time.LocalDateTime.now(),
+                authException.getMessage(),
+                request.getRequestURI()
+            );
+            response.getWriter().write(json);
         };
     }
 

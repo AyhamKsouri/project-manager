@@ -14,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -70,5 +73,21 @@ public class AuthController {
     @GetMapping("/users/search")
     public ResponseEntity<?> searchUsers(@RequestParam String query) {
         return ResponseEntity.ok(userRepository.findByEmailContainingIgnoreCaseOrNameContainingIgnoreCase(query, query));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal UserDetailsImpl currentUser) {
+        User user = userRepository.findById(currentUser.getUser().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/profile/skills")
+    public ResponseEntity<?> updateSkills(@RequestBody SkillsUpdateRequest request, @AuthenticationPrincipal UserDetailsImpl currentUser) {
+        User user = userRepository.findById(currentUser.getUser().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setSkills(request.getSkills());
+        userRepository.save(user);
+        return ResponseEntity.ok(user);
     }
 }

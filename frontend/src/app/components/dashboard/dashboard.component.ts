@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ProjectService } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,14 +10,17 @@ import { Router } from '@angular/router';
 })
 export class DashboardComponent implements OnInit {
   projects: any[] = [];
+  loading = false;
   showCreateModal = false;
   newProject = { name: '', description: '', methodology: 'Agile' };
   userRole: string = '';
+  userName: string = '';
 
   constructor(
     private projectService: ProjectService, 
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) { }
 
   ngOnInit(): void {
@@ -26,39 +30,65 @@ export class DashboardComponent implements OnInit {
     }
     const user = this.authService.getUser();
     this.userRole = user?.role || '';
+    this.userName = user?.name || user?.email || 'there';
     this.loadProjects();
   }
 
+  get isAdmin(): boolean {
+    return this.userRole === 'ROLE_ADMIN';
+  }
+
+  get totalTasks(): number {
+    return this.projects.reduce((sum, project) => sum + (project.taskCount || 0), 0);
+  }
+
+  get totalMembers(): number {
+    return this.projects.reduce((sum, project) => sum + (project.memberCount || 0), 0);
+  }
+
+  get activeProjects(): number {
+    return this.projects.length;
+  }
+
+  get emptyProjects(): number {
+    return this.projects.filter(project => !project.taskCount).length;
+  }
+
+  get largestProject(): any {
+    return [...this.projects].sort((a, b) => (b.taskCount || 0) - (a.taskCount || 0))[0] || null;
+  }
+
   loadProjects(): void {
+    this.loading = true;
     this.projectService.getMyProjects().subscribe({
       next: (projects) => {
-        console.log('Dashboard: Successfully loaded projects', projects.length);
         this.projects = projects;
+        this.loading = false;
       },
       error: (err) => {
-        console.error('Dashboard: Failed to load projects', err);
+        this.loading = false;
         if (err.status === 401) {
-          console.warn('Dashboard: 401 Unauthorized - Token might be invalid or expired');
+          this.toastService.error('Your session expired. Please sign in again.');
+          this.authService.logout();
         } else if (err.status === 0) {
-          console.error('Dashboard: Unknown Error (Status 0). This usually means the server is down, a CORS issue, or the connection was dropped mid-response.');
-          alert('Cannot connect to server. Please check if the backend is running or if there is a network issue.');
+          this.toastService.error('Cannot connect to the backend. Please check that the server is running.');
+        } else {
+          this.toastService.error(err.error?.message || 'Could not load your projects.');
         }
       }
     });
   }
 
   createProject(): void {
-    console.log('Dashboard: Attempting to create project', this.newProject.name);
     this.projectService.createProject(this.newProject).subscribe({
       next: (project) => {
-        console.log('Dashboard: Project created successfully', project.id);
         this.projects.push(project);
         this.showCreateModal = false;
         this.newProject = { name: '', description: '', methodology: 'Agile' };
+        this.toastService.success('Project created successfully');
       },
       error: (err) => {
-        console.error('Dashboard: Project creation failed', err);
-        alert('Failed to create project: ' + (err.error?.message || err.message || 'Unauthorized'));
+        this.toastService.error(err.error?.message || err.message || 'Failed to create project');
       }
     });
   }

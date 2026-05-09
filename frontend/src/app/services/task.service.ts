@@ -11,6 +11,10 @@ export class TaskService {
     return this.http.get<any[]>(`${this.apiUrl}/project/${projectId}`);
   }
 
+  getMyTasks(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/my-tasks`);
+  }
+
   updateTaskStatus(taskId: number, status: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${taskId}/status`, { status });
   }

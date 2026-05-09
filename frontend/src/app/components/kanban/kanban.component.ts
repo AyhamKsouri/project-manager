@@ -5,8 +5,8 @@ import { ProjectService } from '../../services/project.service';
 import { Client } from '@stomp/stompjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-
 import { ToastService } from '../../services/toast.service';
+import { ConfirmService } from '../../services/confirm.service';
 
 @Component({
   selector: 'app-kanban',
@@ -31,17 +31,32 @@ export class KanbanComponent implements OnInit {
   showTaskDetailModal = false;
   showMembersModal = false;
   showInviteModal = false;
+  showProjectSettingsModal = false;
   selectedTask: any = null;
   riskAnalysis: any = null;
   analyzingRisk = false;
   newTask = { title: '', description: '', priority: 'Medium', assigneeId: null };
   inviteEmail = '';
   inviteRole = 'MEMBER';
+  projectSettings = { name: '', description: '', methodology: 'Agile', newOwnerId: null as number | null };
   searchResults: any[] = [];
   
   currentUserRole: string = 'MEMBER';
   currentUserId: number | null = null;
   availableRoles = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
+
+  // Project Health Indicators
+  get unassignedTasksCount(): number {
+    return [...this.todo, ...this.inProgress, ...this.inReview].filter(t => !t.assignee).length;
+  }
+
+  get highPriorityTasksCount(): number {
+    return [...this.todo, ...this.inProgress, ...this.inReview].filter(t => t.priority === 'High' || t.priority === 'Critical').length;
+  }
+
+  get overloadedMembersCount(): number {
+    return this.projectMembers.filter(m => this.getMemberWorkload(m.user.id) >= 5).length;
+  }
 
   get totalTasksCount(): number {
     return this.todo.length + this.inProgress.length + this.inReview.length + this.completed.length;
@@ -53,7 +68,8 @@ export class KanbanComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private confirmService: ConfirmService
   ) {}
 
   ngOnInit(): void {
@@ -97,7 +113,15 @@ export class KanbanComponent implements OnInit {
 
   loadProject(): void {
     this.projectService.getProject(this.projectId).subscribe({
-      next: (project) => this.project = project,
+      next: (project) => {
+        this.project = project;
+        this.projectSettings = {
+          name: project.name || '',
+          description: project.description || '',
+          methodology: project.methodology || 'Agile',
+          newOwnerId: null
+        };
+      },
       error: (err) => console.error('Error loading project:', err)
     });
   }
@@ -185,18 +209,90 @@ export class KanbanComponent implements OnInit {
   }
 
   removeMember(userId: number): void {
-    if (!confirm('Are you sure you want to remove this member?')) return;
-    this.projectService.removeMember(this.projectId, userId).subscribe({
-      next: () => {
-        this.loadProjectMembers();
-        this.toastService.success('Member removed');
-      },
-      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to remove member')
+    this.confirmService.confirm({
+      title: 'Remove Member',
+      message: 'Are you sure you want to remove this member?',
+      confirmText: 'Remove',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.projectService.removeMember(this.projectId, userId).subscribe({
+        next: () => {
+          this.loadProjectMembers();
+          this.toastService.success('Member removed');
+        },
+        error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to remove member')
+      });
     });
   }
 
   canManageMembers(): boolean {
     return this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+  }
+
+  isOwner(): boolean {
+    return this.currentUserRole === 'OWNER';
+  }
+
+  openProjectSettings(): void {
+    if (!this.project) return;
+    this.projectSettings = {
+      name: this.project.name || '',
+      description: this.project.description || '',
+      methodology: this.project.methodology || 'Agile',
+      newOwnerId: null
+    };
+    this.showProjectSettingsModal = true;
+  }
+
+  saveProjectSettings(): void {
+    this.projectService.updateProject(this.projectId, this.projectSettings).subscribe({
+      next: (project) => {
+        this.project = project;
+        this.showProjectSettingsModal = false;
+        this.toastService.success('Project settings updated');
+        this.loadProject();
+      },
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to update project')
+    });
+  }
+
+  transferOwnership(): void {
+    if (!this.projectSettings.newOwnerId) return;
+    this.confirmService.confirm({
+      title: 'Transfer Ownership',
+      message: 'Transfer project ownership to this member?',
+      confirmText: 'Transfer',
+      type: 'primary'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.projectService.transferOwnership(this.projectId, this.projectSettings.newOwnerId as number).subscribe({
+        next: () => {
+          this.toastService.success('Ownership transferred');
+          this.showProjectSettingsModal = false;
+          this.loadProjectMembers();
+        },
+        error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to transfer ownership')
+      });
+    });
+  }
+
+  deleteProject(): void {
+    this.confirmService.confirm({
+      title: 'Delete Project',
+      message: `Delete project "${this.project?.name}" and all of its tasks? This action cannot be undone.`,
+      confirmText: 'Delete Project',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.projectService.deleteProject(this.projectId).subscribe({
+        next: () => {
+          this.toastService.success('Project deleted');
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to delete project')
+      });
+    });
   }
 
   isAssignee(task: any): boolean {
@@ -205,6 +301,32 @@ export class KanbanComponent implements OnInit {
 
   canReassign(): boolean {
     return this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+  }
+
+  canApprove(): boolean {
+    return this.currentUserRole === 'OWNER' || this.currentUserRole === 'ADMIN';
+  }
+
+  approveTask(taskId: number): void {
+    if (!this.canApprove()) return;
+    this.taskService.updateTaskStatus(taskId, 'COMPLETED').subscribe({
+      next: () => {
+        this.toastService.success('Task approved and completed');
+        this.loadTasks();
+      },
+      error: (err) => this.toastService.error(err.error?.message || 'Failed to approve task')
+    });
+  }
+
+  sendBackTask(taskId: number): void {
+    if (!this.canApprove()) return;
+    this.taskService.updateTaskStatus(taskId, 'IN_PROGRESS').subscribe({
+      next: () => {
+        this.toastService.success('Task sent back for revision');
+        this.loadTasks();
+      },
+      error: (err) => this.toastService.error(err.error?.message || 'Failed to send back task')
+    });
   }
 
   canEditTask(task: any): boolean {
@@ -226,21 +348,45 @@ export class KanbanComponent implements OnInit {
   }
 
   suggestAssignee(): void {
-    // Basic auto-assignment logic based on workload
     if (this.projectMembers.length === 0) return;
     
-    let bestMember = this.projectMembers[0];
-    let minWorkload = this.getMemberWorkload(bestMember.user.id);
+    const taskPriority = this.newTask.priority || 'Medium';
+    const taskTitle = this.newTask.title.toLowerCase();
+    const taskDesc = this.newTask.description.toLowerCase();
 
-    this.projectMembers.forEach(m => {
-      const workload = this.getMemberWorkload(m.user.id);
-      if (workload < minWorkload) {
-        minWorkload = workload;
-        bestMember = m;
+    // Scoring system for members
+    const scores = this.projectMembers.map(member => {
+      let score = 0;
+      const workload = this.getMemberWorkload(member.user.id);
+      const skills = (member.user.skills || '').toLowerCase().split(',').map((s: string) => s.trim());
+      
+      // 1. Workload penalty (heavy)
+      score -= workload * 10;
+      if (workload >= 5) score -= 50; // Overload penalty
+
+      // 2. Skill matching (bonus)
+      skills.forEach((skill: string) => {
+        if (skill && (taskTitle.includes(skill) || taskDesc.includes(skill))) {
+          score += 30;
+        }
+      });
+
+      // 3. Priority matching
+      if (taskPriority === 'High' || taskPriority === 'Critical') {
+        // Prefer more experienced or specific role members for high priority if workload allows
+        if (member.projectRole === 'ADMIN' || member.projectRole === 'OWNER') score += 10;
       }
+
+      return { member, score };
     });
 
-    this.newTask.assigneeId = bestMember.user.id;
+    // Sort by score descending
+    scores.sort((a, b) => b.score - a.score);
+    
+    if (scores.length > 0) {
+      this.newTask.assigneeId = scores[0].member.user.id;
+      this.toastService.info(`Suggested ${scores[0].member.user.name} based on workload and skills`);
+    }
   }
 
   groupTasksBySprint(tasks: any[]): void {
@@ -378,13 +524,22 @@ export class KanbanComponent implements OnInit {
   }
 
   deleteTask(taskId: number): void {
-    if (!confirm('Are you sure you want to delete this task?')) return;
-    this.taskService.deleteTask(taskId).subscribe({
-      next: () => {
-        this.showTaskDetailModal = false;
-        this.toastService.success('Task deleted');
-      },
-      error: (err) => this.toastService.error(err.error?.message || 'Failed to delete task')
+    this.confirmService.confirm({
+      title: 'Delete Task',
+      message: 'Are you sure you want to delete this task?',
+      confirmText: 'Delete',
+      type: 'danger'
+    }).then(confirmed => {
+      if (!confirmed) return;
+      this.taskService.deleteTask(taskId).subscribe({
+        next: () => {
+          this.loadTasks();
+          this.showTaskDetailModal = false;
+          this.selectedTask = null;
+          this.toastService.success('Task deleted');
+        },
+        error: (err) => this.toastService.error(err.error?.message || 'Failed to delete task')
+      });
     });
   }
 
@@ -393,13 +548,13 @@ export class KanbanComponent implements OnInit {
     const taskToCreate = { ...this.newTask, projectId: this.projectId };
     this.taskService.createTask(taskToCreate).subscribe({
       next: (res) => {
-        console.log('Task created:', res);
         this.showCreateTaskModal = false;
         this.newTask = { title: '', description: '', priority: 'Medium', assigneeId: null };
+        this.toastService.success('Task created');
         // The WebSocket will trigger loadTasks() automatically
       },
       error: (err) => {
-        console.error('Error creating task:', err);
+        this.toastService.error(err.error?.message || err.error?.error || 'Failed to create task');
       }
     });
   }

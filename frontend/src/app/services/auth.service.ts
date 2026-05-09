@@ -41,8 +41,28 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
+  isAdmin(): boolean {
+    return this.getUser()?.role === 'ROLE_ADMIN';
+  }
+
   searchUsers(query: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/users/search`, { params: { query } });
+  }
+
+  updateSkills(skills: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/profile/skills`, { skills }).pipe(
+      tap((updatedUser: any) => {
+        const currentUser = this.getUser();
+        if (currentUser) {
+          currentUser.skills = updatedUser.skills;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+      })
+    );
+  }
+
+  getUserDetails(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/profile`);
   }
 
   getCurrentUser(): any {

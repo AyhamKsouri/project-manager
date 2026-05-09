@@ -1,0 +1,26 @@
+<div class="modal-overlay animate-fade-in" *ngIf="options" (click)="onCancel()">
+  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
+    <div class="modal-content border-0 shadow-2xl rounded-4 bg-white overflow-hidden">
+      <div class="modal-header-custom p-4 bg-light border-bottom d-flex justify-content-between align-items-center">
+        <h4 class="fw-bold text-dark mb-0">{{ options.title }}</h4>
+        <button type="button" class="btn-close-custom" (click)="onCancel()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="mb-0 text-muted">{{ options.message }}</p>
+      </div>
+      <div class="modal-footer-custom p-4 bg-light border-top d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none" (click)="onCancel()">
+          {{ options.cancelText || 'Cancel' }}
+        </button>
+        <button type="button" class="btn px-4 py-2 rounded-3 fw-bold shadow-sm" 
+                [class.btn-danger]="options.type === 'danger'"
+                [class.btn-primary]="options.type !== 'danger'"
+                (click)="onConfirm()">
+          {{ options.confirmText || 'Confirm' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

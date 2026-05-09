@@ -23,6 +23,15 @@ import { Observable } from 'rxjs';
             <li class="nav-item">
               <a class="nav-link px-3 fw-medium" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-medium" routerLink="/my-tasks" routerLinkActive="active">My Tasks</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-medium" routerLink="/profile" routerLinkActive="active">Profile</a>
+            </li>
+            <li class="nav-item" *ngIf="authService.isAdmin()">
+              <a class="nav-link px-3 fw-medium" routerLink="/admin" routerLinkActive="active">Admin</a>
+            </li>
           </ul>
           <div class="d-flex align-items-center gap-3">
             <div class="user-profile-pill d-none d-md-flex align-items-center gap-2">
@@ -42,8 +51,10 @@ import { Observable } from 'rxjs';
       </div>
     </div>
 
+    <app-confirm-modal></app-confirm-modal>
+
     <!-- Toast Notifications Container -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
       <div *ngFor="let toast of toasts$ | async" 
            class="toast show mb-2 border-0 shadow-lg animate-slide-in" 
            [ngClass]="getToastClass(toast.type)"

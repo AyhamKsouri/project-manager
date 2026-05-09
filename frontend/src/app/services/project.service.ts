@@ -20,6 +20,18 @@ export class ProjectService {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
+  updateProject(projectId: number, project: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${projectId}`, project);
+  }
+
+  deleteProject(projectId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${projectId}`);
+  }
+
+  transferOwnership(projectId: number, userId: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${projectId}/owner/${userId}`, {});
+  }
+
   getProjectMembers(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${projectId}/members`);
   }
@@ -34,10 +46,6 @@ export class ProjectService {
 
   removeMember(projectId: number, userId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${projectId}/members/${userId}`);
-  }
-
-  updateProfileSkills(skills: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/profile/skills`, { skills });
   }
 
   analyzeProjectRisk(projectId: number): Observable<any> {

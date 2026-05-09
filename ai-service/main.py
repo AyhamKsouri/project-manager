@@ -18,12 +18,13 @@ class TaskSuggestion(BaseModel):
     title: str
     description: str
     assigned_to: str
-    status: str = "todo"
     priority: str
     story_points: int
     estimated_days: int
     deadline_offset_days: int
     sprint: str
+    assignment_reason: str = ""
+    status: str = "todo"
     depends_on: list[str] = []
 
 class TaskResponse(BaseModel):
@@ -68,15 +69,21 @@ async def generate_tasks(request: TaskRequest):
     Methodology: {request.methodology}
     Team Skills (format: name:skill1,skill2; name2:skill3): {request.teamSkills}
     
-    CRITICAL RULES:
-    1. Assign each task to the most qualified team member based on their listed skills.
-    2. priority: Must be one of: "low", "medium", "high", "critical".
-    3. story_points: Use the Fibonacci scale (1, 2, 3, 5, 8, 13).
-    4. estimated_days: Provide a realistic duration for the task.
-    5. deadline_offset_days: The number of days from the project start date by which the task should be completed.
-    6. sprint: Group tasks into logical sprints like "Sprint 1", "Sprint 2", etc.
-    7. description: Provide a clear, detailed description of what needs to be done.
-    8. depends_on: List the titles of other tasks that MUST be completed before this task can start. If no dependencies, return an empty list [].
+    CRITICAL ASSIGNMENT RULES:
+    1. Skill Matching: Assign tasks to the member whose skills best match the task title and description.
+    2. Workload Balance: If multiple members match, choose the one with fewer active tasks (indicated in brackets like 'name:skills (2)').
+    3. No Overloading: Do not assign more than 3 new tasks to the same person if others are available.
+    4. Transparency: For each task, provide an 'assignment_reason' explaining why this person was chosen (e.g., "John has Java skills and low workload").
+    5. Leave task unassigned (empty string "") only if absolutely no member fits the requirements.
+
+    OTHER RULES:
+    1. priority: Must be one of: "low", "medium", "high", "critical".
+    2. story_points: Use the Fibonacci scale (1, 2, 3, 5, 8, 13).
+    3. estimated_days: Provide a realistic duration for the task.
+    4. deadline_offset_days: The number of days from the project start date by which the task should be completed.
+    5. sprint: Group tasks into logical sprints like "Sprint 1", "Sprint 2", etc.
+    6. description: Provide a clear, detailed description of what needs to be done.
+    7. depends_on: List the titles of other tasks that MUST be completed before this task can start. If no dependencies, return an empty list [].
     
     Respond ONLY in JSON format matching this structure:
     {{
@@ -85,6 +92,7 @@ async def generate_tasks(request: TaskRequest):
                 "title": "Clear and concise title",
                 "description": "Detailed explanation of task requirements",
                 "assigned_to": "Team member name",
+                "assignment_reason": "Explanation of skill match and workload",
                 "status": "todo",
                 "priority": "low/medium/high/critical",
                 "story_points": 5,
@@ -184,7 +192,10 @@ async def generate_project_plan(request: ProjectPlanRequest):
     4. Team Roles: Suggest roles based on the project needs.
     5. Timeline: Realistic estimate in weeks.
     6. Backlog: Generate at least 8-10 prioritized tasks. 
-       CRITICAL: Assign tasks to real team members from the provided list based on their skills and workload. 
+       CRITICAL ASSIGNMENT: Assign tasks to real team members from the provided list based on their skills and workload. 
+       - Skill Match: Match task requirements to member expertise.
+       - Balance: Do not overload one member.
+       - Reason: Provide 'assignment_reason' for every assignment.
        If no members are provided or they don't fit, use placeholders like "Frontend Dev", "Backend Dev".
     7. Roadmap: Define the sprint sequence according to {request.methodology}.
     
@@ -203,6 +214,7 @@ async def generate_project_plan(request: ProjectPlanRequest):
                 "title": "...",
                 "description": "...",
                 "assigned_to": "Member 1",
+                "assignment_reason": "Skill match and workload explanation",
                 "status": "todo",
                 "priority": "high",
                 "story_points": 5,

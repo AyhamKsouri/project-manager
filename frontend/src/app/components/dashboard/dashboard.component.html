@@ -1,17 +1,71 @@
 <div class="dashboard-header mb-5 animate-fade-in">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
     <div>
-      <h1 class="display-6 fw-bold text-dark mb-1">My Projects</h1>
-      <p class="text-muted mb-0">Manage and track your active project workspaces</p>
+      <p class="text-uppercase small fw-bold text-primary mb-2">{{ isAdmin ? 'Admin workspace' : 'Project workspace' }}</p>
+      <h1 class="display-6 fw-bold text-dark mb-1">Welcome, {{ userName }}</h1>
+      <p class="text-muted mb-0">
+        {{ isAdmin ? 'Monitor the system and jump into project work quickly.' : 'Track your projects and pick the next workspace to move forward.' }}
+      </p>
     </div>
     <button class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center" (click)="showCreateModal = true">
-      <i class="bi bi-plus-lg me-2"></i> Create New Project
+      <i class="bi bi-plus-lg me-2"></i> New Project
+    </button>
+  </div>
+</div>
+
+<div class="row g-3 mb-4 animate-slide-up" *ngIf="!loading">
+  <div class="col-md-3 col-6">
+    <div class="overview-card">
+      <span class="overview-label">Projects</span>
+      <strong>{{ activeProjects }}</strong>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="overview-card">
+      <span class="overview-label">Tasks</span>
+      <strong>{{ totalTasks }}</strong>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="overview-card">
+      <span class="overview-label">Team Seats</span>
+      <strong>{{ totalMembers }}</strong>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="overview-card" [class.needs-attention]="emptyProjects > 0">
+      <span class="overview-label">Needs Setup</span>
+      <strong>{{ emptyProjects }}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="next-step-panel mb-4 animate-slide-up" *ngIf="!loading && projects.length > 0">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <h5 class="fw-bold text-dark mb-1">Recommended next step</h5>
+      <p class="text-muted mb-0" *ngIf="emptyProjects > 0">
+        Add tasks and members to the projects that still need setup, so owners and members have a clear place to start.
+      </p>
+      <p class="text-muted mb-0" *ngIf="emptyProjects === 0 && largestProject">
+        Review {{ largestProject.name }} first. It currently has the most task activity in your workspace.
+      </p>
+    </div>
+    <button class="btn btn-light-primary px-4 rounded-3 fw-bold align-self-lg-center" *ngIf="largestProject" (click)="selectProject(largestProject.id)">
+      Open Recommended Workspace <i class="bi bi-arrow-right ms-1"></i>
     </button>
   </div>
 </div>
 
 <div class="row g-4 animate-slide-up">
-  <div class="col-md-6 col-lg-4" *ngFor="let project of projects">
+  <div *ngIf="loading" class="col-12 text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2 text-muted">Loading your projects...</p>
+  </div>
+
+  <div class="col-md-6 col-lg-4" *ngFor="let project of projects" [hidden]="loading">
     <div class="project-card h-100 shadow-sm border-0 rounded-4 overflow-hidden bg-white">
       <div class="project-card-header p-4 pb-0">
         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -48,7 +102,7 @@
   </div>
 
   <!-- Empty State -->
-  <div class="col-12" *ngIf="projects.length === 0">
+  <div class="col-12" *ngIf="!loading && projects.length === 0">
     <div class="empty-state-card text-center p-5 rounded-4 bg-white shadow-sm border-0">
       <div class="empty-state-icon mb-4">
         <i class="bi bi-folder-plus display-1 text-light-indigo"></i>
@@ -116,6 +170,35 @@
   .project-card {
     transition: all 0.3s ease;
     border: 1px solid rgba(0,0,0,0.05) !important;
+  }
+
+  .overview-card, .next-step-panel {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+
+  .overview-card.needs-attention {
+    border-color: #fed7aa;
+    background: #fff7ed;
+  }
+
+  .overview-label {
+    display: block;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+
+  .overview-card strong {
+    color: #0f172a;
+    font-size: 1.8rem;
+    line-height: 1;
   }
 
   .project-card:hover {

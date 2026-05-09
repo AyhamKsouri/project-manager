@@ -1,16 +1,22 @@
 # 🚀 ProManager: AI-Powered Project Management System
 
-ProManager is a modern, full-stack project management application designed to streamline workflows, enhance collaboration, and leverage AI for intelligent task generation and risk analysis.
+ProManager is a modern, full-stack project management application designed to streamline workflows, enhance collaboration, and leverage AI for intelligent task generation, transparent resource allocation, and risk analysis.
 
 ## ✨ Features
 
-- **📊 Dynamic Kanban Board**: Drag-and-drop tasks across different statuses (To Do, In Progress, Review, Done).
-- **🤖 AI Task Generation**: Automatically generate realistic tasks based on project descriptions and team skills using the Groq AI API.
-- **🔍 AI Risk Analysis**: Identify bottlenecks, overloaded team members, and potential delays with AI-driven insights.
-- **👥 Team Management**: Assign roles (OWNER, ADMIN, MEMBER, VIEWER) and manage project collaborators.
-- **📈 Real-time Statistics**: Track project progress with live task and member counts.
-- **🎨 Modern UI/UX**: Clean, responsive interface with smooth animations and intuitive design.
-- **🔒 Secure Authentication**: JWT-based authentication with role-based access control.
+- **📊 Dynamic Kanban Board**: Advanced drag-and-drop workflow with explicit **Approval Workflows** (Approve/Reject) for project managers.
+- **🤖 Smart AI Task Generation**: Automatically generate realistic tasks with **Intelligent Assignment** based on member skills and workload. Includes **AI Assignment Intel** to explain the reasoning behind each suggestion.
+- **🔍 AI Risk Analysis**: Proactive identification of bottlenecks, overloaded team members, and potential delays with actionable recommendations.
+- **🛡️ Admin Control Center**:
+    - **Audit & History Logs**: Full accountability with a searchable timeline of system-wide actions.
+    - **System Health & Insights**: Real-time monitoring of project health, unassigned tasks, and idle resources.
+    - **Bulk Actions**: Streamlined management with bulk delete and update capabilities.
+- **👤 Personal Workspace**:
+    - **Grouped My Tasks**: Focus-oriented views sorted by status (Start Now, In Progress) or urgency (Due Today, This Week).
+    - **Profile & Skill Management**: Direct skill updates to improve AI assignment relevance.
+- **👥 Advanced Team Management**: Granular role-based access (OWNER, ADMIN, MEMBER, VIEWER) with visual workload balancing.
+- **🎨 Modern UI/UX**: High-performance Angular interface with custom CSS3 animations, real-time WebSocket updates, and intuitive navigation.
+- **🔒 Security & Safety**: JWT-based authentication, functional route guards, normalized error responses, and database-level safeguards against system lockouts.
 
 ## 🛠️ Tech Stack
 

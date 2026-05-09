@@ -12,190 +12,9 @@
             <span class="methodology-badge" [ngClass]="project?.methodology?.toLowerCase() || 'agile'">
               {{ project?.methodology || 'Agile' }}
             </span>
-            <span class="text-muted small">•</span>
+            <span class="text-muted small">&middot;</span>
             <span class="text-muted small fw-medium">{{ totalTasksCount }} Total Tasks</span>
-            <!-- Member Management Modal -->
-  <div class="modal fade show" *ngIf="showMembersModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border-0 shadow-lg rounded-4">
-        <div class="modal-header border-0 p-4">
-          <h5 class="modal-title fw-bold text-dark">Project Members</h5>
-          <button type="button" class="btn-close" (click)="showMembersModal = false"></button>
-        </div>
-        <div class="modal-body p-4 pt-0">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <p class="text-muted mb-0">Manage roles and permissions for your team.</p>
-            <button class="btn btn-primary-indigo btn-sm rounded-3 px-3 fw-bold" (click)="showInviteModal = true" *ngIf="canManageMembers()">
-              <i class="bi bi-person-plus me-1"></i> Invite Member
-            </button>
           </div>
-
-          <div class="table-responsive">
-            <table class="table table-hover align-middle border-0">
-              <thead>
-                <tr class="text-muted small text-uppercase">
-                  <th class="border-0 px-0">Member</th>
-                  <th class="border-0">Role</th>
-                  <th class="border-0">Workload</th>
-                  <th class="border-0 text-end" *ngIf="canManageMembers()">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let member of projectMembers">
-                  <td class="px-0 border-0 py-3">
-                    <div class="d-flex align-items-center">
-                      <div class="avatar-circle me-3">{{ member.user.name.charAt(0) }}</div>
-                      <div>
-                        <div class="fw-bold text-dark">{{ member.user.name }}</div>
-                        <div class="small text-muted">{{ member.user.email }}</div>
-                      </div>
-                    </div>
-                    <div class="mt-2" *ngIf="member.user.skills">
-                      <span class="badge bg-light text-muted border rounded-pill me-1" *ngFor="let skill of member.user.skills.split(',')">
-                        {{ skill.trim() }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="border-0">
-                    <select class="form-select form-select-sm rounded-pill border-0 bg-light fw-medium w-auto" 
-                            [(ngModel)]="member.projectRole" 
-                            (change)="updateMemberRole(member.user.id, member.projectRole)"
-                            [disabled]="!canManageMembers() || member.projectRole === 'OWNER'">
-                      <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
-                    </select>
-                  </td>
-                  <td class="border-0">
-                    <div class="d-flex align-items-center">
-                      <div class="progress flex-grow-1 me-2" style="height: 6px; min-width: 60px;">
-                        <div class="progress-bar" [ngClass]="getMemberWorkload(member.user.id) > 5 ? 'bg-danger' : 'bg-success'" 
-                             [style.width.%]="(getMemberWorkload(member.user.id) / 10) * 100"></div>
-                      </div>
-                      <span class="small fw-bold">{{ getMemberWorkload(member.user.id) }} active</span>
-                    </div>
-                  </td>
-                  <td class="border-0 text-end" *ngIf="canManageMembers()">
-                    <button class="btn btn-link text-danger p-0" (click)="removeMember(member.user.id)" *ngIf="member.projectRole !== 'OWNER'">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Invite Member Modal -->
-  <div class="modal fade show" *ngIf="showInviteModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1060;" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header border-0 p-4 pb-0 bg-white">
-          <h5 class="modal-title fw-bold text-dark">Add Team Member</h5>
-          <button type="button" class="btn-close" (click)="showInviteModal = false"></button>
-        </div>
-        <div class="modal-body p-4 bg-white">
-          <p class="text-muted small mb-4">Add a user to your project to start collaborating and dividing tasks.</p>
-          
-          <div class="mb-3 position-relative">
-            <label class="form-label small fw-bold text-muted text-uppercase mb-2">User Email or Name</label>
-            <div class="input-group">
-              <span class="input-group-text border-0 bg-light rounded-start-3"><i class="bi bi-search text-muted"></i></span>
-              <input type="text" class="form-control border-0 bg-light shadow-none rounded-end-3 py-2" 
-                     [(ngModel)]="inviteEmail" (ngModelChange)="onSearchUsers($event)"
-                     placeholder="Search by name or email...">
-            </div>
-            
-            <!-- Search Results Dropdown -->
-            <div class="search-results-dropdown shadow-lg rounded-3 mt-1 position-absolute w-100 bg-white border" 
-                 *ngIf="searchResults.length > 0" style="z-index: 1070; max-height: 200px; overflow-y: auto;">
-              <div class="list-group list-group-flush">
-                <button type="button" class="list-group-item list-group-item-action border-0 py-2" 
-                        *ngFor="let user of searchResults" (click)="selectUser(user)">
-                  <div class="d-flex align-items-center">
-                    <div class="avatar-circle-sm me-2 bg-primary text-white" style="width: 30px; height: 30px; font-size: 12px;">
-                      {{ user.name.charAt(0) }}
-                    </div>
-                    <div>
-                      <div class="fw-bold small">{{ user.name }}</div>
-                      <div class="text-muted smaller">{{ user.email }}</div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="mb-4">
-            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Project Role</label>
-            <select class="form-select border-0 bg-light shadow-none rounded-3 py-2 fw-medium" [(ngModel)]="inviteRole">
-              <option value="ADMIN">Admin (Can manage tasks & members)</option>
-              <option value="MEMBER" selected>Member (Can update tasks)</option>
-              <option value="VIEWER">Viewer (Read-only access)</option>
-            </select>
-          </div>
-          
-          <button class="btn btn-primary-indigo w-100 py-3 fw-bold rounded-3 shadow-sm" 
-                  (click)="inviteMember()" [disabled]="!inviteEmail">
-            <i class="bi bi-person-plus-fill me-2"></i> Add to Project
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Create Task Modal Enhancement -->
-  <div class="modal fade show" *ngIf="showCreateTaskModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4">
-        <div class="modal-header border-0 p-4">
-          <h5 class="modal-title fw-bold text-dark">Create New Task</h5>
-          <button type="button" class="btn-close" (click)="showCreateTaskModal = false"></button>
-        </div>
-        <div class="modal-body p-4 pt-0">
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted text-uppercase">Title</label>
-            <input type="text" class="form-control rounded-3" [(ngModel)]="newTask.title" placeholder="What needs to be done?">
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted text-uppercase">Description</label>
-            <textarea class="form-control rounded-3" [(ngModel)]="newTask.description" rows="3" placeholder="Add more details..."></textarea>
-          </div>
-          <div class="row g-3 mb-4">
-            <div class="col-6">
-              <label class="form-label small fw-bold text-muted text-uppercase">Priority</label>
-              <select class="form-select rounded-3" [(ngModel)]="newTask.priority">
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-                <option value="Critical">Critical</option>
-              </select>
-            </div>
-            <div class="col-6">
-              <label class="form-label small fw-bold text-muted text-uppercase d-flex justify-content-between">
-                Assignee
-                <span class="text-primary cursor-pointer" style="font-size: 0.7rem;" (click)="suggestAssignee()">
-                  <i class="bi bi-magic"></i> Auto
-                </span>
-              </label>
-              <select class="form-select rounded-3" [(ngModel)]="newTask.assigneeId">
-                <option [ngValue]="null">Unassigned</option>
-                <option *ngFor="let member of projectMembers" [value]="member.user.id">
-                  {{ member.user.name }} ({{ getMemberWorkload(member.user.id) }} active)
-                </option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-primary-indigo w-100 py-2 fw-bold rounded-3 shadow-sm" (click)="createTask()" [disabled]="!newTask.title">
-            Create Task
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
         </div>
       </div>
       
@@ -225,6 +44,49 @@
           <button class="btn btn-white border rounded-3 px-4 fw-bold shadow-sm" (click)="showMembersModal = true">
             <i class="bi bi-people me-1"></i> Members
           </button>
+          <button class="btn btn-white border rounded-3 px-4 fw-bold shadow-sm" (click)="openProjectSettings()" *ngIf="canManageMembers()">
+            <i class="bi bi-sliders me-1"></i> Settings
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Health Panel -->
+    <div class="row g-3 mt-4 animate-slide-up">
+      <div class="col-md-2">
+        <div class="health-card bg-light-indigo border-0">
+          <span class="health-label">Total Tasks</span>
+          <strong class="health-value text-indigo">{{ totalTasksCount }}</strong>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="health-card" [class.bg-light-warning]="unassignedTasksCount > 0" [class.bg-light-success]="unassignedTasksCount === 0">
+          <span class="health-label">Unassigned</span>
+          <strong class="health-value" [class.text-warning]="unassignedTasksCount > 0" [class.text-success]="unassignedTasksCount === 0">{{ unassignedTasksCount }}</strong>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="health-card" [class.bg-light-warning]="inReview.length > 0" [class.bg-light-success]="inReview.length === 0">
+          <span class="health-label">Needs Review</span>
+          <strong class="health-value" [class.text-warning]="inReview.length > 0" [class.text-success]="inReview.length === 0">{{ inReview.length }}</strong>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="health-card" [class.bg-light-danger]="overloadedMembersCount > 0" [class.bg-light-success]="overloadedMembersCount === 0">
+          <span class="health-label">Overloaded</span>
+          <strong class="health-value" [class.text-danger]="overloadedMembersCount > 0" [class.text-success]="overloadedMembersCount === 0">{{ overloadedMembersCount }}</strong>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="health-card" [class.bg-light-danger]="highPriorityTasksCount > 0" [class.bg-light-success]="highPriorityTasksCount === 0">
+          <span class="health-label">High Priority</span>
+          <strong class="health-value" [class.text-danger]="highPriorityTasksCount > 0" [class.text-success]="highPriorityTasksCount === 0">{{ highPriorityTasksCount }}</strong>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="health-card bg-light-success border-0">
+          <span class="health-label">Completed</span>
+          <strong class="health-value text-success">{{ completed.length }}</strong>
         </div>
       </div>
     </div>
@@ -258,6 +120,11 @@
                   <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
+
+                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
+                  <i class="bi bi-magic text-primary me-1"></i>
+                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
+                </div>
                 
                 <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
                   <span class="meta-item" *ngIf="task.storyPoints">
@@ -278,6 +145,15 @@
                   <div class="assignee ms-auto" *ngIf="task.assignee">
                     <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
                   </div>
+                </div>
+
+                <div class="approval-actions mt-3 pt-2 border-top d-flex gap-2" *ngIf="canApprove()">
+                  <button class="btn btn-sm btn-success-modern flex-grow-1 py-1" (click)="approveTask(task.id); $event.stopPropagation()">
+                    <i class="bi bi-check-lg me-1"></i> Approve
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger-modern flex-grow-1 py-1" (click)="sendBackTask(task.id); $event.stopPropagation()">
+                    <i class="bi bi-arrow-return-left me-1"></i> Reject
+                  </button>
                 </div>
               </div>
             </div>
@@ -310,7 +186,12 @@
                   <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
-                
+
+                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
+                  <i class="bi bi-magic text-primary me-1"></i>
+                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
+                </div>
+
                 <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
                   <span class="meta-item" *ngIf="task.storyPoints">
                     <i class="bi bi-layers"></i> {{ task.storyPoints }}
@@ -330,6 +211,15 @@
                   <div class="assignee ms-auto" *ngIf="task.assignee">
                     <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
                   </div>
+                </div>
+
+                <div class="approval-actions mt-3 pt-2 border-top d-flex gap-2" *ngIf="canApprove()">
+                  <button class="btn btn-sm btn-success-modern flex-grow-1 py-1" (click)="approveTask(task.id); $event.stopPropagation()">
+                    <i class="bi bi-check-lg me-1"></i> Approve
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger-modern flex-grow-1 py-1" (click)="sendBackTask(task.id); $event.stopPropagation()">
+                    <i class="bi bi-arrow-return-left me-1"></i> Reject
+                  </button>
                 </div>
               </div>
             </div>
@@ -362,7 +252,12 @@
                   <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
-                
+
+                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
+                  <i class="bi bi-magic text-primary me-1"></i>
+                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
+                </div>
+
                 <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
                   <span class="meta-item" *ngIf="task.storyPoints">
                     <i class="bi bi-layers"></i> {{ task.storyPoints }}
@@ -413,6 +308,11 @@
                   <i class="bi bi-lock-fill"></i>
                 </div>
                 <p class="task-desc">{{ task.description }}</p>
+
+                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
+                  <i class="bi bi-magic text-primary me-1"></i>
+                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
+                </div>
 
                 <div class="task-metadata mb-3 d-flex flex-wrap gap-2 opacity-50">
                   <span class="meta-item" *ngIf="task.storyPoints">
@@ -599,6 +499,140 @@
     </div>
   </div>
 
+  <!-- Member Management Modal -->
+  <div class="modal fade show" *ngIf="showMembersModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-0 p-4">
+          <h5 class="modal-title fw-bold text-dark">Project Members</h5>
+          <button type="button" class="btn-close" (click)="showMembersModal = false"></button>
+        </div>
+        <div class="modal-body p-4 pt-0">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="text-muted mb-0">Manage roles, skills, and workload for your team.</p>
+            <button class="btn btn-primary-indigo btn-sm rounded-3 px-3 fw-bold" (click)="showInviteModal = true" *ngIf="canManageMembers()">
+              <i class="bi bi-person-plus me-1"></i> Invite Member
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle border-0">
+              <thead>
+                <tr class="text-muted small text-uppercase">
+                  <th class="border-0 px-0">Member</th>
+                  <th class="border-0">Role</th>
+                  <th class="border-0">Workload</th>
+                  <th class="border-0 text-end" *ngIf="canManageMembers()">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of projectMembers">
+                  <td class="px-0 border-0 py-3">
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-circle me-3">{{ member.user.name.charAt(0) }}</div>
+                      <div>
+                        <div class="fw-bold text-dark">{{ member.user.name }}</div>
+                        <div class="small text-muted">{{ member.user.email }}</div>
+                      </div>
+                    </div>
+                    <div class="mt-2" *ngIf="member.user.skills">
+                      <span class="badge bg-light text-muted border rounded-pill me-1" *ngFor="let skill of member.user.skills.split(',')">
+                        {{ skill.trim() }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="border-0">
+                    <select class="form-select form-select-sm rounded-pill border-0 bg-light fw-medium w-auto"
+                            [(ngModel)]="member.projectRole"
+                            (change)="updateMemberRole(member.user.id, member.projectRole)"
+                            [disabled]="!canManageMembers() || member.projectRole === 'OWNER'">
+                      <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+                    </select>
+                  </td>
+                  <td class="border-0">
+                    <div class="d-flex align-items-center">
+                      <div class="progress flex-grow-1 me-2" style="height: 6px; min-width: 60px;">
+                        <div class="progress-bar" [ngClass]="getMemberWorkload(member.user.id) >= 5 ? 'bg-danger' : (getMemberWorkload(member.user.id) === 0 ? 'bg-secondary' : 'bg-success')"
+                             [style.width.%]="(getMemberWorkload(member.user.id) / 10) * 100"></div>
+                      </div>
+                      <span class="small fw-bold" [class.text-danger]="getMemberWorkload(member.user.id) >= 5" [class.text-muted]="getMemberWorkload(member.user.id) === 0">
+                        {{ getMemberWorkload(member.user.id) }} active
+                      </span>
+                      <span class="ms-2 badge bg-soft-danger text-danger extra-small" *ngIf="getMemberWorkload(member.user.id) >= 5">Overloaded</span>
+                      <span class="ms-2 badge bg-soft-secondary text-secondary extra-small" *ngIf="getMemberWorkload(member.user.id) === 0">Idle</span>
+                    </div>
+                  </td>
+                  <td class="border-0 text-end" *ngIf="canManageMembers()">
+                    <button class="btn btn-link text-danger p-0" (click)="removeMember(member.user.id)" *ngIf="member.projectRole !== 'OWNER'">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite Member Modal -->
+  <div class="modal fade show" *ngIf="showInviteModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1060;" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-0 p-4 pb-0 bg-white">
+          <h5 class="modal-title fw-bold text-dark">Add Team Member</h5>
+          <button type="button" class="btn-close" (click)="showInviteModal = false"></button>
+        </div>
+        <div class="modal-body p-4 bg-white">
+          <p class="text-muted small mb-4">Search an existing user, choose their project role, and add them to this workspace.</p>
+
+          <div class="mb-3 position-relative">
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">User Email or Name</label>
+            <div class="input-group">
+              <span class="input-group-text border-0 bg-light rounded-start-3"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control border-0 bg-light shadow-none rounded-end-3 py-2"
+                     [(ngModel)]="inviteEmail" (ngModelChange)="onSearchUsers($event)"
+                     placeholder="Search by name or email...">
+            </div>
+
+            <div class="search-results-dropdown shadow-lg rounded-3 mt-1 position-absolute w-100 bg-white border"
+                 *ngIf="searchResults.length > 0" style="z-index: 1070; max-height: 200px; overflow-y: auto;">
+              <div class="list-group list-group-flush">
+                <button type="button" class="list-group-item list-group-item-action border-0 py-2"
+                        *ngFor="let user of searchResults" (click)="selectUser(user)">
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-circle-sm me-2 bg-primary text-white" style="width: 30px; height: 30px; font-size: 12px;">
+                      {{ user.name.charAt(0) }}
+                    </div>
+                    <div>
+                      <div class="fw-bold small">{{ user.name }}</div>
+                      <div class="text-muted smaller">{{ user.email }}</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Project Role</label>
+            <select class="form-select border-0 bg-light shadow-none rounded-3 py-2 fw-medium" [(ngModel)]="inviteRole">
+              <option value="ADMIN">Admin (Can manage tasks and members)</option>
+              <option value="MEMBER">Member (Can update assigned work)</option>
+              <option value="VIEWER">Viewer (Read-only access)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary-indigo w-100 py-3 fw-bold rounded-3 shadow-sm"
+                  (click)="inviteMember()" [disabled]="!inviteEmail">
+            <i class="bi bi-person-plus-fill me-2"></i> Add to Project
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Create Task Modal -->
   <div class="modal fade show" *ngIf="showCreateTaskModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -680,6 +714,15 @@
                       [disabled]="!canEditTask(selectedTask)"></textarea>
           </div>
 
+          <div class="mb-4 animate-fade-in" *ngIf="selectedTask.assignmentReason">
+            <label class="form-label small fw-bold text-primary text-uppercase mb-2">
+              <i class="bi bi-magic me-1"></i> AI Assignment Intel
+            </label>
+            <div class="p-3 bg-light-indigo rounded-3 border-0">
+              <p class="mb-0 small text-dark fw-medium">{{ selectedTask.assignmentReason }}</p>
+            </div>
+          </div>
+
           <div class="d-flex justify-content-end gap-2" *ngIf="canEditTask(selectedTask) || canDeleteTask(selectedTask)">
             <button class="btn btn-outline-danger-modern border-0 rounded-3 px-4 fw-bold" 
                     *ngIf="canDeleteTask(selectedTask)" (click)="deleteTask(selectedTask.id)">
@@ -745,6 +788,64 @@
       </div>
     </div>
   </div>
+
+  <!-- Project Settings Modal -->
+  <div class="modal fade show" *ngIf="showProjectSettingsModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header border-0 p-4">
+          <div>
+            <h5 class="modal-title fw-bold text-dark">Project Settings</h5>
+            <p class="text-muted small mb-0">Owner and admin controls for this workspace.</p>
+          </div>
+          <button type="button" class="btn-close" (click)="showProjectSettingsModal = false"></button>
+        </div>
+        <div class="modal-body p-4 pt-0">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase">Name</label>
+            <input class="form-control rounded-3" [(ngModel)]="projectSettings.name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted text-uppercase">Description</label>
+            <textarea class="form-control rounded-3" rows="3" [(ngModel)]="projectSettings.description"></textarea>
+          </div>
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted text-uppercase">Methodology</label>
+            <select class="form-select rounded-3" [(ngModel)]="projectSettings.methodology">
+              <option value="Agile">Agile</option>
+              <option value="Scrum">Scrum</option>
+              <option value="Kanban">Kanban</option>
+              <option value="Waterfall">Waterfall</option>
+            </select>
+          </div>
+
+          <div class="border rounded-4 p-3 mb-4" *ngIf="isOwner()">
+            <label class="form-label small fw-bold text-muted text-uppercase">Transfer ownership</label>
+            <p class="extra-small text-muted mb-2">Warning: You will lose owner permissions after transfer.</p>
+            <div class="d-flex gap-2">
+              <select class="form-select rounded-3" [(ngModel)]="projectSettings.newOwnerId">
+                <option [ngValue]="null">Select member</option>
+                <option *ngFor="let member of projectMembers" [ngValue]="member.user.id" [disabled]="member.projectRole === 'OWNER'">
+                  {{ member.user.name }} - {{ member.projectRole }}
+                </option>
+              </select>
+              <button class="btn btn-outline-primary fw-bold" (click)="transferOwnership()" [disabled]="!projectSettings.newOwnerId">Transfer</button>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between gap-2">
+            <button class="btn btn-outline-danger fw-bold" (click)="deleteProject()" *ngIf="isOwner()">
+              <i class="bi bi-trash3 me-1"></i> Delete Project
+            </button>
+            <div class="ms-auto d-flex gap-2">
+              <button class="btn btn-light fw-bold" (click)="showProjectSettingsModal = false">Cancel</button>
+              <button class="btn btn-primary-indigo fw-bold" (click)="saveProjectSettings()" [disabled]="!projectSettings.name">Save Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -757,6 +858,29 @@
     from { opacity: 0; transform: translateY(20px); } 
     to { opacity: 1; transform: translateY(0); } 
   }
+
+  /* Health Panel Styles */
+  .health-card {
+    padding: 1rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .health-card:hover { transform: translateY(-2px); }
+  .health-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; }
+  .health-value { font-size: 1.5rem; font-weight: 800; }
+  
+  .bg-light-indigo { background: #eef2ff; }
+  .text-indigo { color: #4f46e5; }
+  .bg-light-warning { background: #fffbeb; }
+  .bg-light-success { background: #f0fdf4; }
+  .bg-light-danger { background: #fef2f2; }
+  .bg-soft-danger { background: #fee2e2; }
+  .bg-soft-secondary { background: #f1f5f9; }
 
   /* Wrapper Layout */
   .kanban-wrapper {
@@ -989,186 +1113,34 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     border: 1px solid #e2e8f0;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-    cursor: grab;
+    position: relative;
+    cursor: pointer;
   }
-  .task-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
-    border-color: #4f46e5;
-  }
-
-  .card-priority-line {
-    width: 4px;
-    flex-shrink: 0;
-  }
-  .card-priority-line.critical { background: #7f1d1d; }
-  .card-priority-line.high { background: #ef4444; }
+  .task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+  .card-priority-line { position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 16px 0 0 16px; }
+  .card-priority-line.high, .card-priority-line.critical { background: #ef4444; }
   .card-priority-line.medium { background: #f59e0b; }
   .card-priority-line.low { background: #10b981; }
+  
+  .card-content { padding: 1.25rem; }
+  .task-title { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; line-height: 1.4; }
+  .task-desc { font-size: 0.8rem; color: #64748b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1rem; }
+  
+  .priority-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 50px; text-transform: uppercase; }
+  .priority-badge.high, .priority-badge.critical { background: #fee2e2; color: #991b1b; }
+  .priority-badge.medium { background: #fef3c7; color: #92400e; }
+  .priority-badge.low { background: #dcfce7; color: #166534; }
 
-  .card-content {
-    padding: 1.25rem;
-    flex: 1;
-  }
+  .meta-item { font-size: 0.7rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .sprint-tag { background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 6px; color: #64748b; }
 
-  .task-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
-  }
+  .drag-lock-overlay { position: absolute; top: 10px; right: 10px; color: #cbd5e1; font-size: 0.8rem; }
+  .drag-disabled { cursor: default; opacity: 0.85; }
 
-  .task-desc {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 1.25rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .meta-item {
-    font-size: 0.7rem;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 4px 10px;
-    border-radius: 8px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .priority-badge {
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 6px;
-    text-transform: uppercase;
-  }
-  .priority-badge.critical { background: #fee2e2; color: #7f1d1d; border: 1px solid #fecaca; }
-  .priority-badge.high { background: #fef2f2; color: #dc2626; }
-  .priority-badge.medium { background: #fffbeb; color: #d97706; }
-  .priority-badge.low { background: #f0fdf4; color: #16a34a; }
-
-  .avatar-circle {
-    width: 28px;
-    height: 28px;
-    background: #4f46e5;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-    border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .avatar-circle-sm {
-    width: 24px;
-    height: 24px;
-    background: #4f46e5;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    font-weight: 700;
-    border: 1px solid white;
-  }
-
-  .priority-badge-sm {
-    font-size: 0.6rem;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-  }
-  .priority-badge-sm.critical { background: #fee2e2; color: #7f1d1d; }
-  .priority-badge-sm.high { background: #fef2f2; color: #dc2626; }
-  .priority-badge-sm.medium { background: #fffbeb; color: #d97706; }
-  .priority-badge-sm.low { background: #f0fdf4; color: #16a34a; }
-
-  .status-indicator-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-  }
-  .status-indicator-dot.todo { background: #94a3b8; }
-  .status-indicator-dot.in_progress { background: #4f46e5; }
-  .status-indicator-dot.in_review { background: #f59e0b; }
-  .status-indicator-dot.completed { background: #10b981; }
-
-  .risk-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    background: #fff1f2;
-    border-radius: 50%;
-    border: 1px solid #ffe4e6;
-  }
-
-  /* Custom Scrollbar */
-  .kanban-list::-webkit-scrollbar { width: 6px; }
-  .kanban-list::-webkit-scrollbar-track { background: transparent; }
-  .kanban-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-  /* Drag & Drop */
-  .cdk-drag-preview {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    border-radius: 16px;
-    background: white;
-    transform: rotate(2deg);
-  }
-  .cdk-drag-placeholder { opacity: 0.1; }
+  .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
   /* Sprint View */
-  .sprint-view-container {
-    padding: 2rem;
-    background: #f8fafc;
-  }
-  .sprint-group {
-    background: white;
-    border-radius: 24px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-  }
-  .sprint-icon-circle {
-    width: 44px;
-    height: 44px;
-    background: #f5f3ff;
-    color: #4f46e5;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-  }
-  .task-card.drag-disabled {
-    cursor: not-allowed !important;
-    opacity: 0.65;
-    background: #f8f9fa;
-  }
-  .drag-lock-overlay {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: #adb5bd;
-    font-size: 14px;
-    z-index: 5;
-  }
-  .task-card.drag-disabled:hover {
-    transform: none !important;
-    box-shadow: none !important;
-  }
+  .sprint-icon-circle { width: 48px; height: 48px; background: #4f46e5; color: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
 </style>

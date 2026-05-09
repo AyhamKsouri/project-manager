@@ -1,6 +1,8 @@
 package com.pm.controller;
 import com.pm.model.*;
 import com.pm.repository.*;
+import com.pm.security.ProjectAccessService;
+import com.pm.security.UserDetailsImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -36,15 +39,18 @@ public class AIController {
     private ProjectUserRepository projectUserRepository;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private ProjectAccessService projectAccessService;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/generate-tasks")
     @Transactional
-    public ResponseEntity<Object> generateTasks(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Object> generateTasks(@RequestBody Map<String, Object> request, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         logger.info("Received request to generate tasks with AI: {}", request);
         
         Long projectId = Long.valueOf(request.get("projectId").toString());
+        projectAccessService.requireProjectManager(projectId, currentUser);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
@@ -81,6 +87,7 @@ public class AIController {
 
                         String description = taskNode.path("description").asText("No description provided");
                         String assignedTo = taskNode.path("assigned_to").asText("Unassigned");
+                        String assignmentReason = taskNode.path("assignment_reason").asText("");
                         String priority = taskNode.path("priority").asText("medium").toLowerCase();
                         
                         if (!validPriorities.contains(priority)) {
@@ -101,6 +108,7 @@ public class AIController {
                         task.setEstimatedDays(estimatedDays);
                         task.setDueDate(LocalDate.now().plusDays(deadlineOffset));
                         task.setSprintName(sprint);
+                        task.setAssignmentReason(assignmentReason);
                         task.setProject(project);
                         
                         Optional<User> assignee = memberships.stream()
@@ -145,8 +153,9 @@ public class AIController {
 
     @PostMapping("/{projectId}/analyze-risk")
     @Transactional(readOnly = true)
-    public ResponseEntity<Object> analyzeProjectRisk(@PathVariable Long projectId) {
+    public ResponseEntity<Object> analyzeProjectRisk(@PathVariable Long projectId, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         try {
+            projectAccessService.requireProjectMember(projectId, currentUser);
             projectRepository.findById(projectId)
                     .orElseThrow(() -> new RuntimeException("Project not found"));
 

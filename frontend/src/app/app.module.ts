@@ -9,6 +9,10 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { KanbanComponent } from './components/kanban/kanban.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { AdminComponent } from './components/admin/admin.component';
+import { MyTasksComponent } from './components/my-tasks/my-tasks.component';
+import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
@@ -16,7 +20,11 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     AppComponent,
     LoginComponent,
     KanbanComponent,
-    DashboardComponent
+    DashboardComponent,
+    AdminComponent,
+    MyTasksComponent,
+    ConfirmModalComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,
