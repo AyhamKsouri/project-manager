@@ -1,0 +1,28 @@
+.notification-card {
+  cursor: pointer;
+  border-left: 4px solid transparent !important;
+}
+.notification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+}
+.notification-card.unread {
+  border-left-color: var(--primary-indigo) !important;
+  background-color: #f8faff !important;
+}
+.notification-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+}
+.notification-icon-wrapper.info { background: #e0f2fe; color: #0369a1; }
+.notification-icon-wrapper.success { background: #dcfce7; color: #15803d; }
+.notification-icon-wrapper.warning { background: #fef3c7; color: #a16207; }
+.notification-icon-wrapper.danger { background: #fee2e2; color: #b91c1c; }
+
+.fw-800 { font-weight: 800; }
+.smaller { font-size: 0.7rem; }
+.letter-spacing-1 { letter-spacing: 1px; }
+.hover-opacity-100:hover { opacity: 1 !important; }
+.btn-soft-primary { background: #eef2ff; color: #4f46e5; }
+.btn-soft-primary:hover { background: #e0e7ff; }

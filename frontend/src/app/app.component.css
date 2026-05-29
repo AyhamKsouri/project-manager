@@ -1,0 +1,81 @@
+:host {
+  --primary-color: var(--primary-indigo);
+  --primary-hover: var(--primary-indigo-hover);
+  --bg-light: #f8fafc;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-success { background: #10b981; }
+.toast-error { background: #ef4444; }
+.toast-warning { background: #f59e0b; }
+.toast-info { background: #3b82f6; }
+
+.logo-icon-sm {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.brand-name-sm {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.5px;
+  color: #1e293b;
+}
+
+.nav-link.active {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.user-profile-pill {
+  background: #f1f5f9;
+  padding: 4px 12px 4px 4px;
+  border-radius: 50px;
+}
+
+.avatar-circle-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.main-content {
+  background-color: #f8fafc;
+  min-height: calc(100vh - 76px);
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.main-content.kanban-main {
+  height: calc(100vh - 76px);
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.main-content.kanban-main > .container {
+  height: 100%;
+  max-width: 100%;
+}

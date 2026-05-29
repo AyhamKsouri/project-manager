@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -46,9 +46,5 @@ export class ProjectService {
 
   removeMember(projectId: number, userId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${projectId}/members/${userId}`);
-  }
-
-  analyzeProjectRisk(projectId: number): Observable<any> {
-    return this.http.post<any>(`/api/ai/${projectId}/analyze-risk`, {});
   }
 }

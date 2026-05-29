@@ -1,0 +1,96 @@
+.admin-hero {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.metric-card, .admin-panel {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.metric-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-card strong {
+  font-size: 2.25rem;
+  color: #0f172a;
+  display: block;
+}
+
+.insight-clickable {
+  cursor: pointer;
+  border-width: 2px;
+}
+
+.insight-clickable:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary-indigo);
+  box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1);
+}
+
+.insight-clickable.active {
+  border-color: var(--primary-indigo);
+  background: #f5f3ff;
+}
+
+.insight-clickable.danger:hover {
+  border-color: #ef4444;
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1);
+}
+
+.insight-clickable.danger.active {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.admin-tabs .btn.active {
+  background: var(--primary-indigo);
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.admin-tabs .btn {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.table-active {
+  background-color: #f8fafc !important;
+}
+
+.extra-small {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.log-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-timeline::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}

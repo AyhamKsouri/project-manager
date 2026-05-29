@@ -13,7 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,15 +78,15 @@ public class AIController {
                 
                 List<Task> createdTasks = new ArrayList<>();
                 if (tasksNode != null && tasksNode.isArray()) {
-                    List<ProjectUser> memberships = projectUserRepository.findByProjectId(projectId);
+                    List<ProjectUser> memberships = projectUserRepository.findByProject_Id(projectId);
                     List<String> validPriorities = List.of("low", "medium", "high", "critical");
                     
                     Map<String, Task> taskMap = new java.util.HashMap<>();
-                    taskRepository.findByProjectId(projectId).forEach(t -> taskMap.put(t.getTitle().toLowerCase(), t));
+                    taskRepository.findByProject_Id(projectId).forEach(t -> taskMap.put(t.getTitle().toLowerCase(), t));
                     
                     for (JsonNode taskNode : tasksNode) {
                         String title = taskNode.get("title").asText();
-                        if (taskRepository.existsByProjectIdAndTitleIgnoreCase(projectId, title)) {
+                        if (taskRepository.existsByProject_IdAndTitleIgnoreCase(projectId, title)) {
                             logger.warn("Skipping duplicate task title: '{}' in project {}", title, projectId);
                             continue;
                         }
@@ -159,8 +165,8 @@ public class AIController {
             projectRepository.findById(projectId)
                     .orElseThrow(() -> new RuntimeException("Project not found"));
 
-            List<Task> tasks = taskRepository.findByProjectId(projectId);
-            List<ProjectUser> memberships = projectUserRepository.findByProjectId(projectId);
+            List<Task> tasks = taskRepository.findByProject_Id(projectId);
+            List<ProjectUser> memberships = projectUserRepository.findByProject_Id(projectId);
             List<String> teamMembers = memberships.stream()
                     .map(m -> m.getUser().getName())
                     .toList();
@@ -194,6 +200,57 @@ public class AIController {
         } catch (Exception e) {
             logger.error("Error analyzing project risk: ", e);
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/analyze-cv")
+    public ResponseEntity<List<String>> analyzeCv(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserDetailsImpl currentUser) throws IOException {
+
+        String contentType = file.getContentType();
+        String originalFilename = Optional.ofNullable(file.getOriginalFilename()).orElse("").toLowerCase();
+        if (!"application/pdf".equals(contentType) && !originalFilename.endsWith(".pdf")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
+            @Override
+            public String getFilename() {
+                return file.getOriginalFilename();
+            }
+        };
+        body.add("file", resource);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<List> response = restTemplate.postForEntity(
+                    aiServiceUrl + "/analyze-cv",
+                    requestEntity,
+                    List.class
+            );
+
+            List<?> rawSkills = Optional.ofNullable(response.getBody()).orElse(List.of());
+            List<String> skills = rawSkills.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .map(String::trim)
+                    .filter(skill -> !skill.isBlank())
+                    .distinct()
+                    .toList();
+
+            return ResponseEntity.ok(skills);
+        } catch (RestClientException e) {
+            logger.error("Error calling AI service for CV analysis: ", e);
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(List.of());
+        } catch (Exception e) {
+            logger.error("Unexpected CV analysis error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(List.of());
         }
     }
 }

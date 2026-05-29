@@ -1,0 +1,58 @@
+/* Side Panel Variant */
+.variant-side-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  max-height: 100vh;
+  width: 480px;
+  max-width: 90vw;
+  border-radius: 0;
+  border-left: 1px solid var(--border-base);
+  border-top: none;
+  border-bottom: none;
+  animation: slidePanelEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.side-panel-backdrop {
+  justify-content: flex-end;
+  padding: 0;
+  background: rgba(9, 9, 11, 0.1);
+}
+
+@keyframes slidePanelEnter {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-title-premium {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.btn-close-premium {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--zinc-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+}
+
+.btn-close-premium:hover {
+  background: var(--zinc-100);
+  color: var(--text-main);
+}

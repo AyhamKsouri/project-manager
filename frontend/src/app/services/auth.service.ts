@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = '/api/auth';
+  private currentUserSubject = new BehaviorSubject<any>(this.getUser());
+  currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -15,6 +17,7 @@ export class AuthService {
         if (res.token) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('user', JSON.stringify(res));
+          this.currentUserSubject.next(res);
         }
       })
     );
@@ -26,6 +29,7 @@ export class AuthService {
         if (res.token) {
           localStorage.setItem('token', res.token);
           localStorage.setItem('user', JSON.stringify(res));
+          this.currentUserSubject.next(res);
         }
       })
     );
@@ -34,6 +38,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
@@ -56,6 +61,7 @@ export class AuthService {
         if (currentUser) {
           currentUser.skills = updatedUser.skills;
           localStorage.setItem('user', JSON.stringify(currentUser));
+          this.currentUserSubject.next(currentUser);
         }
       })
     );
@@ -67,6 +73,10 @@ export class AuthService {
 
   getCurrentUser(): any {
     return this.getUser();
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
   }
 
   getUser(): any {

@@ -13,7 +13,12 @@ import { AdminComponent } from './components/admin/admin.component';
 import { MyTasksComponent } from './components/my-tasks/my-tasks.component';
 import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
+import { TaskCardComponent } from './components/task-card/task-card.component';
+import { ChatWidgetComponent } from './components/chat-widget/chat-widget.component';
+import { ModalComponent } from './components/ui/modal/modal.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { AiService } from './services/ai.service';
 
 @NgModule({
   declarations: [
@@ -23,17 +28,22 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     DashboardComponent,
     AdminComponent,
     MyTasksComponent,
-    ConfirmModalComponent,
-    ProfileComponent
+    ConfirmModalComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     FormsModule,
     DragDropModule,
-    AppRoutingModule
+    AppRoutingModule,
+    ProfileComponent,
+    NotificationsComponent,
+    TaskCardComponent,
+    ChatWidgetComponent,
+    ModalComponent
   ],
   providers: [
+    AiService,
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]

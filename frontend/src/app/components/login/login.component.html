@@ -10,17 +10,17 @@
             </div>
             <span class="brand-name">ProManager</span>
           </div>
-          <h1 class="display-5 fw-bold mb-3 mt-4">Organize your work <br><span class="text-highlight">effortlessly.</span></h1>
-          <p class="lead opacity-75">The most intuitive way to manage your projects, track tasks, and collaborate with your team in real-time.</p>
+          <h1 class="display-5 fw-bold mb-3 mt-4">Organisez votre travail <br><span class="text-highlight">sans effort.</span></h1>
+          <p class="lead opacity-75">La façon la plus intuitive de gérer vos projets, de suivre vos tâches et de collaborer avec votre équipe en temps réel.</p>
         </div>
 
         <div class="testimonial-box p-4 rounded-4 bg-white bg-opacity-10 backdrop-blur">
-          <p class="mb-3 italic small text-light">"This tool has completely transformed how our team handles complex projects. The Kanban view is a game changer!"</p>
+          <p class="mb-3 italic small text-light">"Cet outil a complètement transformé la façon dont notre équipe gère les projets complexes. La vue Kanban change la donne !"</p>
           <div class="d-flex align-items-center gap-3">
             <div class="avatar-sm rounded-circle bg-light text-primary fw-bold">JD</div>
             <div>
               <div class="small fw-bold">Jane Doe</div>
-              <div class="extra-small opacity-75">Project Lead at TechCorp</div>
+              <div class="extra-small opacity-75">Chef de projet chez TechCorp</div>
             </div>
           </div>
         </div>
@@ -34,8 +34,8 @@
         </div>
 
         <div class="form-header mb-4">
-          <h2 class="fw-bold text-dark mb-1">{{ isLoginMode ? 'Welcome Back' : 'Get Started' }}</h2>
-          <p class="text-muted small">{{ isLoginMode ? 'Enter your credentials to access your workspace' : 'Create an account to start managing your projects' }}</p>
+          <h2 class="fw-bold text-dark mb-1">{{ isLoginMode ? 'Bon retour' : 'Commencer' }}</h2>
+          <p class="text-muted small">{{ isLoginMode ? 'Entrez vos identifiants pour accéder à votre espace de travail' : 'Créez un compte pour commencer à gérer vos projets' }}</p>
         </div>
 
         <!-- Alert Messages -->
@@ -55,24 +55,24 @@
           <form *ngIf="isLoginMode" (ngSubmit)="onLogin()" #loginForm="ngForm" class="animate-slide-up">
             <div class="form-floating mb-3">
               <input type="email" class="form-control rounded-3" id="loginEmail" name="email" [(ngModel)]="credentials.email" required placeholder="name@example.com" autocomplete="username">
-              <label for="loginEmail">Email address</label>
+              <label for="loginEmail">Adresse e-mail</label>
             </div>
             
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-3" id="loginPassword" name="password" [(ngModel)]="credentials.password" required placeholder="Password" autocomplete="current-password">
-              <label for="loginPassword">Password</label>
+              <input type="password" class="form-control rounded-3" id="loginPassword" name="password" [(ngModel)]="credentials.password" required placeholder="Mot de passe" autocomplete="current-password">
+              <label for="loginPassword">Mot de passe</label>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4 px-1">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="rememberMe">
-                <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
+                <label class="form-check-label small text-muted" for="rememberMe">Se souvenir de moi</label>
               </div>
-              <a href="#" class="small text-primary text-decoration-none fw-medium">Forgot password?</a>
+              <button type="button" (click)="onForgotPassword()" class="btn btn-link p-0 small text-primary text-decoration-none fw-medium border-0 shadow-none">Mot de passe oublié ?</button>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm mb-4 d-flex align-items-center justify-content-center" [disabled]="loading || !loginForm.valid">
-              <span *ngIf="!loading">Sign In</span>
+              <span *ngIf="!loading">Se connecter</span>
               <div *ngIf="loading" class="spinner-border spinner-border-sm me-2"></div>
               <i *ngIf="!loading" class="bi bi-arrow-right ms-2"></i>
             </button>
@@ -81,27 +81,27 @@
           <!-- Register Form -->
           <form *ngIf="!isLoginMode" (ngSubmit)="onRegister()" #registerForm="ngForm" class="animate-slide-up">
             <div class="form-floating mb-3">
-              <input type="text" class="form-control rounded-3" id="regName" name="name" [(ngModel)]="registerData.name" required placeholder="Full Name">
-              <label for="regName">Full Name</label>
+              <input type="text" class="form-control rounded-3" id="regName" name="name" [(ngModel)]="registerData.name" required placeholder="Nom complet">
+              <label for="regName">Nom complet</label>
             </div>
 
             <div class="form-floating mb-3">
               <input type="email" class="form-control rounded-3" id="regEmail" name="email" [(ngModel)]="registerData.email" required placeholder="name@example.com">
-              <label for="regEmail">Email address</label>
+              <label for="regEmail">Adresse e-mail</label>
             </div>
             
             <div class="form-floating mb-3">
-              <input type="password" class="form-control rounded-3" id="regPassword" name="password" [(ngModel)]="registerData.password" required placeholder="Password">
-              <label for="regPassword">Password</label>
+              <input type="password" class="form-control rounded-3" id="regPassword" name="password" [(ngModel)]="registerData.password" required placeholder="Mot de passe">
+              <label for="regPassword">Mot de passe</label>
             </div>
 
             <div class="form-floating mb-4">
-              <input type="text" class="form-control rounded-3" id="regSkills" name="skills" [(ngModel)]="registerData.skills" placeholder="Skills (Optional)">
-              <label for="regSkills">Skills (Optional, e.g. Java, Python)</label>
+              <input type="text" class="form-control rounded-3" id="regSkills" name="skills" [(ngModel)]="registerData.skills" placeholder="Compétences (Optionnel)">
+              <label for="regSkills">Compétences (Optionnel, ex: Java, Python)</label>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm mb-4 d-flex align-items-center justify-content-center" [disabled]="loading || !registerForm.valid">
-              <span *ngIf="!loading">Create Account</span>
+              <span *ngIf="!loading">Créer un compte</span>
               <div *ngIf="loading" class="spinner-border spinner-border-sm me-2"></div>
               <i *ngIf="!loading" class="bi bi-person-plus ms-2"></i>
             </button>
@@ -110,9 +110,9 @@
 
         <div class="text-center">
           <p class="text-muted small">
-            {{ isLoginMode ? "Don't have an account?" : "Already have an account?" }}
+            {{ isLoginMode ? "Vous n'avez pas de compte ?" : "Vous avez déjà un compte ?" }}
             <button (click)="toggleMode()" class="btn btn-link p-0 small text-primary fw-bold text-decoration-none border-0 vertical-align-baseline">
-              {{ isLoginMode ? 'Sign Up Now' : 'Sign In instead' }}
+              {{ isLoginMode ? 'Inscrivez-vous maintenant' : 'Connectez-vous plutôt' }}
             </button>
           </p>
         </div>
@@ -120,7 +120,7 @@
         <div *ngIf="isLoginMode" class="demo-login-card mt-5 p-3 rounded-4 bg-light border-0">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-info-circle text-primary"></i>
-            <span class="small fw-bold text-dark uppercase">Demo Access</span>
+            <span class="small fw-bold text-dark uppercase">Accès démo</span>
           </div>
           <div class="small text-muted font-monospace bg-white p-2 rounded-2 border">
             admin&#64;pm.com / password
@@ -131,142 +131,3 @@
   </div>
 </div>
 
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-  .auth-container {
-    background-color: #f4f7fa;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    padding: 1rem;
-  }
-
-  .auth-card-wrapper {
-    width: 100%;
-    max-width: 1050px;
-  }
-
-  .auth-card {
-    display: flex;
-    overflow: hidden;
-    border-radius: 28px;
-    background: white;
-    min-height: 680px;
-  }
-
-  .auth-brand-side {
-    flex: 1.1;
-    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-    position: relative;
-    z-index: 1;
-  }
-
-  .auth-brand-side::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    z-index: -1;
-  }
-
-  .auth-form-side {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .brand-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: white;
-    color: #4f46e5;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-
-  .brand-name {
-    font-weight: 700;
-    font-size: 1.25rem;
-    letter-spacing: -0.5px;
-  }
-
-  .text-highlight {
-    color: #a5b4fc;
-  }
-
-  .backdrop-blur {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .form-floating > .form-control {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-  }
-
-  .form-floating > .form-control:focus {
-    background-color: #fff;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-  }
-
-  .btn-primary {
-    background-color: #4f46e5;
-    border: none;
-    transition: all 0.2s ease;
-  }
-
-  .btn-primary:hover:not(:disabled) {
-    background-color: #4338ca;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-  }
-
-  .btn-primary:active {
-    transform: translateY(0);
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.4s ease-out forwards;
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
-  }
-
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .demo-login-card {
-    border: 1px dashed #e2e8f0 !important;
-  }
-
-  .vertical-align-baseline {
-    vertical-align: baseline;
-  }
-
-  .avatar-sm {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-  }
-</style>

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
 import { ToastService, Toast } from './services/toast.service';
+import { NotificationService } from './services/notification.service';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -21,36 +22,49 @@ import { Observable } from 'rxjs';
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
             <li class="nav-item">
-              <a class="nav-link px-3 fw-medium" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+              <a class="nav-link px-3 fw-medium" routerLink="/dashboard" routerLinkActive="active">Tableau de bord</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link px-3 fw-medium" routerLink="/my-tasks" routerLinkActive="active">My Tasks</a>
+              <a class="nav-link px-3 fw-medium" routerLink="/my-tasks" routerLinkActive="active">Mes tâches</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link px-3 fw-medium" routerLink="/profile" routerLinkActive="active">Profile</a>
+              <a class="nav-link px-3 fw-medium" routerLink="/profile" routerLinkActive="active">Profil</a>
             </li>
             <li class="nav-item" *ngIf="authService.isAdmin()">
-              <a class="nav-link px-3 fw-medium" routerLink="/admin" routerLinkActive="active">Admin</a>
+              <a class="nav-link px-3 fw-medium" routerLink="/admin" routerLinkActive="active">Administration</a>
             </li>
           </ul>
           <div class="d-flex align-items-center gap-3">
+            <!-- Notification Bell -->
+            <a routerLink="/notifications" class="btn btn-light position-relative rounded-circle d-flex align-items-center justify-content-center" 
+               style="width: 42px; height: 42px; background-color: #f1f5f9; border: none;"
+               title="Notifications">
+              <i class="bi bi-bell-fill fs-5 text-dark"></i>
+              <span *ngIf="(unreadCount$ | async) !== null && (unreadCount$ | async)! > 0" 
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" 
+                    style="font-size: 0.7rem; padding: 0.35em 0.5em;">
+                {{ unreadCount$ | async }}
+              </span>
+            </a>
+
             <div class="user-profile-pill d-none d-md-flex align-items-center gap-2">
               <div class="avatar-circle-sm bg-primary text-white">{{ authService.getUser()?.email?.charAt(0)?.toUpperCase() }}</div>
               <span class="fw-semibold text-dark small">{{ authService.getUser()?.email }}</span>
             </div>
             <button class="btn btn-outline-danger rounded-pill px-4 btn-sm fw-bold border-2" (click)="logout()">
-              <i class="bi bi-box-arrow-right me-1"></i> Logout
+              <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
             </button>
           </div>
         </div>
       </div>
     </nav>
-    <div class="container-fluid px-0 main-content">
+    <div class="container-fluid px-0 main-content" [class.kanban-main]="router.url.startsWith('/kanban')">
       <div class="container">
         <router-outlet></router-outlet>
       </div>
     </div>
 
+    <app-chat-widget *ngIf="authService.isLoggedIn()"></app-chat-widget>
     <app-confirm-modal></app-confirm-modal>
 
     <!-- Toast Notifications Container -->
@@ -69,90 +83,21 @@ import { Observable } from 'rxjs';
         </div>
       </div>
     </div>
-
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-      :host {
-        --primary-color: #4f46e5;
-        --primary-hover: #4338ca;
-        --bg-light: #f8fafc;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-      }
-
-      body {
-        background-color: var(--bg-light);
-      }
-
-      .animate-slide-in {
-        animation: slideIn 0.3s ease-out forwards;
-      }
-
-      @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-
-      .toast-success { background: #10b981; }
-      .toast-error { background: #ef4444; }
-      .toast-warning { background: #f59e0b; }
-      .toast-info { background: #3b82f6; }
-
-      .logo-icon-sm {
-        width: 32px;
-        height: 32px;
-        background: var(--primary-color);
-        color: white;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-      }
-
-      .brand-name-sm {
-        font-weight: 700;
-        font-size: 1.1rem;
-        letter-spacing: -0.5px;
-        color: #1e293b;
-      }
-
-      .nav-link.active {
-        color: var(--primary-color) !important;
-        font-weight: 600;
-      }
-
-      .user-profile-pill {
-        background: #f1f5f9;
-        padding: 4px 12px 4px 4px;
-        border-radius: 50px;
-      }
-
-      .avatar-circle-sm {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 700;
-      }
-
-      .main-content {
-        background-color: #f8fafc;
-        min-height: calc(100vh - 76px);
-        padding-top: 2rem;
-        padding-bottom: 4rem;
-      }
-    </style>
-  `
+  `,
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   toasts$: Observable<Toast[]>;
+  unreadCount$: Observable<number>;
 
-  constructor(public authService: AuthService, private router: Router, public toastService: ToastService) {
+  constructor(
+    public authService: AuthService, 
+    public router: Router, 
+    public toastService: ToastService,
+    private notificationService: NotificationService
+  ) {
     this.toasts$ = this.toastService.getToasts();
+    this.unreadCount$ = this.notificationService.getUnreadCount();
   }
 
   ngOnInit(): void {}

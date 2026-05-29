@@ -28,7 +28,7 @@ public class ProjectAccessService {
         if (isGlobalAdmin(user)) {
             return null;
         }
-        return projectUserRepository.findByProjectIdAndUserId(projectId, user.getUser().getId())
+        return projectUserRepository.findByProject_IdAndUser_Id(projectId, user.getUser().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not a member of this project"));
     }
 

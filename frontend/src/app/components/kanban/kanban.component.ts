@@ -1,22 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
+import { AiService } from '../../services/ai.service';
 import { Client } from '@stomp/stompjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmService } from '../../services/confirm.service';
+import { ChatContextService, SprintRefreshService } from '../chat-widget/chat.service';
+import { SprintContext } from '../chat-widget/chat.models';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-kanban',
-  templateUrl: './kanban.component.html'
+  templateUrl: './kanban.component.html',
+  styleUrls: ['./kanban.component.css']
 })
-export class KanbanComponent implements OnInit {
+export class KanbanComponent implements OnInit, OnDestroy {
   projectId: number = 0;
   project: any = null;
   todo: any[] = []; inProgress: any[] = []; inReview: any[] = []; completed: any[] = [];
   projectMembers: any[] = [];
+  allTasks: any[] = [];
   
   // Phase 5: Sprint View Data
   sprints: string[] = [];
@@ -24,7 +30,8 @@ export class KanbanComponent implements OnInit {
   selectedSprint: string = 'All Sprints';
   activeView: 'kanban' | 'sprint' = 'kanban';
 
-  private stompClient: any = null;
+  private stompClient: Client | null = null;
+  private refreshSubscription?: Subscription;
 
   showCreateTaskModal = false;
   showRiskAnalysisModal = false;
@@ -32,6 +39,7 @@ export class KanbanComponent implements OnInit {
   showMembersModal = false;
   showInviteModal = false;
   showProjectSettingsModal = false;
+  showMoreDropdown = false;
   selectedTask: any = null;
   riskAnalysis: any = null;
   analyzingRisk = false;
@@ -65,11 +73,14 @@ export class KanbanComponent implements OnInit {
   constructor(
     private taskService: TaskService,
     private projectService: ProjectService,
+    private aiService: AiService,
     private route: ActivatedRoute,
     private authService: AuthService,
     private router: Router,
     private toastService: ToastService,
-    private confirmService: ConfirmService
+    private confirmService: ConfirmService,
+    private chatContextService: ChatContextService,
+    private sprintRefreshService: SprintRefreshService
   ) {}
 
   ngOnInit(): void {
@@ -77,6 +88,11 @@ export class KanbanComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+
+    this.refreshSubscription = this.sprintRefreshService.refreshRequested.subscribe(() => {
+      this.loadTasks();
+    });
+
     this.route.params.subscribe((params: any) => {
       this.projectId = +params['id'];
       this.loadProject();
@@ -84,6 +100,14 @@ export class KanbanComponent implements OnInit {
       this.loadProjectMembers();
       this.connectWebSocket();
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.stompClient) {
+      this.stompClient.deactivate();
+    }
+    this.refreshSubscription?.unsubscribe();
+    this.chatContextService.clearContext();
   }
 
   openTaskDetail(task: any): void {
@@ -99,7 +123,7 @@ export class KanbanComponent implements OnInit {
   analyzeRisk(): void {
     this.analyzingRisk = true;
     this.showRiskAnalysisModal = true;
-    this.projectService.analyzeProjectRisk(this.projectId).subscribe({
+    this.aiService.analyzeProjectRisk(this.projectId).subscribe({
       next: (analysis) => {
         this.riskAnalysis = analysis;
         this.analyzingRisk = false;
@@ -130,6 +154,7 @@ export class KanbanComponent implements OnInit {
     this.taskService.getTasksByProject(this.projectId).subscribe({
       next: (tasks: any[]) => {
         console.log('Tasks loaded:', tasks);
+        this.allTasks = tasks;
         this.todo = tasks.filter(t => t.status === 'TODO');
         this.inProgress = tasks.filter(t => t.status === 'IN_PROGRESS');
         this.inReview = tasks.filter(t => t.status === 'IN_REVIEW');
@@ -137,6 +162,7 @@ export class KanbanComponent implements OnInit {
         
         // Phase 5: Group tasks by sprint
         this.groupTasksBySprint(tasks);
+        this.updateChatContext();
       },
       error: (err) => {
         console.error('Error loading tasks:', err);
@@ -158,11 +184,35 @@ export class KanbanComponent implements OnInit {
         if (myMembership) {
           this.currentUserRole = myMembership.projectRole;
         }
+        this.updateChatContext();
       },
       error: (err) => {
         console.error('Error loading project members:', err);
       }
     });
+  }
+
+  updateChatContext(): void {
+    const context: SprintContext = {
+      sprintId: 'current', // or specific sprint ID if applicable
+      projectId: this.projectId,
+      sprintName: 'Active Sprint',
+      tasks: this.allTasks.map(t => ({
+        id: t.id,
+        title: t.title,
+        status: t.status,
+        priority: t.priority,
+        assignee: t.assignee?.name || null,
+        sprintName: t.sprintName
+      })),
+      teamMembers: this.projectMembers.map(m => ({
+        id: m.user.id,
+        username: m.user.username,
+        name: m.user.name,
+        email: m.user.email
+      }))
+    };
+    this.chatContextService.setContext(context);
   }
 
   inviteMember(): void {
@@ -232,6 +282,19 @@ export class KanbanComponent implements OnInit {
 
   isOwner(): boolean {
     return this.currentUserRole === 'OWNER';
+  }
+
+  isOverdue(task: any): boolean {
+    if (!task.dueDate || task.status === 'COMPLETED') return false;
+    return new Date(task.dueDate) < new Date();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown')) {
+      this.showMoreDropdown = false;
+    }
   }
 
   openProjectSettings(): void {
@@ -417,11 +480,16 @@ export class KanbanComponent implements OnInit {
   connectWebSocket(): void {
     const token = localStorage.getItem('token');
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // Use window.location.host which includes port if present
     const host = window.location.host;
     
     // Add token as query parameter for environments where headers aren't supported during handshake
     const brokerURL = `${protocol}//${host}/ws${token ? '?token=' + encodeURIComponent(token) : ''}`;
     
+    if (this.stompClient) {
+      this.stompClient.deactivate();
+    }
+
     this.stompClient = new Client({
       brokerURL: brokerURL,
       connectHeaders: {
@@ -432,7 +500,7 @@ export class KanbanComponent implements OnInit {
       },
       onConnect: () => {
         console.log('Connected to WebSocket');
-        this.stompClient.subscribe(`/topic/project/${this.projectId}`, (message: any) => {
+        this.stompClient?.subscribe(`/topic/project/${this.projectId}`, (message: any) => {
           console.log('WebSocket message received:', message.body);
           this.loadTasks();
         });
@@ -500,8 +568,9 @@ export class KanbanComponent implements OnInit {
     const projectDesc = this.project.description || this.project.name;
     const methodology = this.project.methodology || 'Agile';
 
-    this.taskService.generateAiTasks(this.projectId, projectDesc, teamData, methodology).subscribe({
-      next: (tasks: any[]) => {
+    this.aiService.generateTasks(this.projectId, projectDesc, teamData, methodology).subscribe({
+      next: (res: any) => {
+        const tasks = res.tasks || [];
         this.toastService.success(`Successfully generated ${tasks.length} tasks!`, 'AI Planner');
         this.loadTasks();
       },

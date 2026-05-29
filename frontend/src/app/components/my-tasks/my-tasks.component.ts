@@ -6,7 +6,8 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-my-tasks',
-  templateUrl: './my-tasks.component.html'
+  templateUrl: './my-tasks.component.html',
+  styleUrls: ['./my-tasks.component.css']
 })
 export class MyTasksComponent implements OnInit {
   tasks: any[] = [];
@@ -60,7 +61,7 @@ export class MyTasksComponent implements OnInit {
           this.selectedTask = tasks.find(t => t.id === this.selectedTask.id);
         }
       },
-      error: () => this.toastService.error('Could not load your tasks')
+      error: () => this.toastService.error('Impossible de charger vos tâches')
     });
   }
 
@@ -68,10 +69,10 @@ export class MyTasksComponent implements OnInit {
     const filtered = this.filteredTasks;
     if (this.groupBy === 'status') {
       return [
-        { title: 'Start Now (To Do)', tasks: filtered.filter(t => t.status === 'TODO') },
-        { title: 'In Progress', tasks: filtered.filter(t => t.status === 'IN_PROGRESS') },
-        { title: 'Waiting Review', tasks: filtered.filter(t => t.status === 'IN_REVIEW') },
-        { title: 'Completed', tasks: filtered.filter(t => t.status === 'COMPLETED') }
+        { title: 'Commencer maintenant (À faire)', tasks: filtered.filter(t => t.status === 'TODO') },
+        { title: 'En cours', tasks: filtered.filter(t => t.status === 'IN_PROGRESS') },
+        { title: 'En attente de révision', tasks: filtered.filter(t => t.status === 'IN_REVIEW') },
+        { title: 'Terminé', tasks: filtered.filter(t => t.status === 'COMPLETED') }
       ].filter(g => g.tasks.length > 0);
     } else {
       const today = new Date();
@@ -81,19 +82,19 @@ export class MyTasksComponent implements OnInit {
 
       return [
         { 
-          title: 'Due Today', 
+          title: 'Échéance aujourd\'hui', 
           tasks: filtered.filter(t => t.dueDate && new Date(t.dueDate).toDateString() === today.toDateString()) 
         },
         { 
-          title: 'Due This Week', 
+          title: 'Échéance cette semaine', 
           tasks: filtered.filter(t => t.dueDate && new Date(t.dueDate) > today && new Date(t.dueDate) <= endOfWeek) 
         },
         { 
-          title: 'Upcoming / Later', 
+          title: 'À venir / Plus tard', 
           tasks: filtered.filter(t => t.dueDate && new Date(t.dueDate) > endOfWeek) 
         },
         { 
-          title: 'No Due Date', 
+          title: 'Sans date d\'échéance', 
           tasks: filtered.filter(t => !t.dueDate) 
         }
       ].filter(g => g.tasks.length > 0);
@@ -113,20 +114,20 @@ export class MyTasksComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.showTaskModal = false;
-        this.toastService.success('Task updated');
+        this.toastService.success('Tâche mise à jour');
         this.loadTasks();
       },
-      error: err => this.toastService.error(err.error?.message || 'Failed to update task')
+      error: err => this.toastService.error(err.error?.message || 'Échec de la mise à jour de la tâche')
     });
   }
 
   getActionText(status: string): string {
     switch (status) {
-      case 'TODO': return 'Start';
-      case 'IN_PROGRESS': return 'Send to Review';
-      case 'IN_REVIEW': return 'Waiting for approval';
-      case 'COMPLETED': return 'Done';
-      default: return 'Move';
+      case 'TODO': return 'Commencer';
+      case 'IN_PROGRESS': return 'Envoyer en révision';
+      case 'IN_REVIEW': return 'En attente d\'approbation';
+      case 'COMPLETED': return 'Terminé';
+      default: return 'Déplacer';
     }
   }
 
@@ -143,10 +144,10 @@ export class MyTasksComponent implements OnInit {
   moveTask(task: any, status: string): void {
     this.taskService.updateTaskStatus(task.id, status).subscribe({
       next: () => {
-        this.toastService.success('Task status updated');
+        this.toastService.success('Statut de la tâche mis à jour');
         this.loadTasks();
       },
-      error: err => this.toastService.error(err.error?.error || 'Could not update task')
+      error: err => this.toastService.error(err.error?.error || 'Impossible de mettre à jour la tâche')
     });
   }
 

@@ -27,6 +27,9 @@ public class Task {
     private LocalDate dueDate;
     private String sprintName;
     private String riskLevel; // Added for future use as per user request (PHASE 1 mentioned risk levels)
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean deleted = false;
     
     @Column(columnDefinition = "TEXT")
     private String assignmentReason;

@@ -1,0 +1,30 @@
+<div class="modal-backdrop-premium" *ngIf="isOpen" (click)="onBackdropClick($event)" [class.side-panel-backdrop]="variant === 'side-panel'">
+  <div class="modal-container-premium" 
+       [ngClass]="['modal-' + size, glass ? 'modal-container-glass' : '', 'variant-' + variant]"
+       [style.max-width.px]="variant === 'side-panel' ? null : (size === 'sm' ? 400 : size === 'md' ? 600 : size === 'lg' ? 850 : 1100)">1100">
+    
+    <!-- Header -->
+    <div class="modal-header-premium">
+      <div class="header-content">
+        <h3 class="modal-title-premium" *ngIf="title">{{ title }}</h3>
+        <ng-content select="[modal-header]"></ng-content>
+      </div>
+      
+      <button type="button" class="btn-close-premium" (click)="closeModal()" aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 1L13 13M1 13L13 1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body-premium">
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer-premium" *ngIf="showFooter">
+      <ng-content select="[modal-footer]"></ng-content>
+    </div>
+  </div>
+</div>

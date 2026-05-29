@@ -1,14 +1,14 @@
 <div class="dashboard-header mb-5 animate-fade-in">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
     <div>
-      <p class="text-uppercase small fw-bold text-primary mb-2">{{ isAdmin ? 'Admin workspace' : 'Project workspace' }}</p>
-      <h1 class="display-6 fw-bold text-dark mb-1">Welcome, {{ userName }}</h1>
+      <p class="text-uppercase small fw-bold text-primary mb-2">{{ isAdmin ? 'Espace d\'administration' : 'Espace de projet' }}</p>
+      <h1 class="display-6 fw-bold text-dark mb-1">Bienvenue, {{ userName }}</h1>
       <p class="text-muted mb-0">
-        {{ isAdmin ? 'Monitor the system and jump into project work quickly.' : 'Track your projects and pick the next workspace to move forward.' }}
+        {{ isAdmin ? 'Surveillez le système et accédez rapidement au travail sur les projets.' : 'Suivez vos projets et choisissez le prochain espace de travail pour avancer.' }}
       </p>
     </div>
     <button class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center" (click)="showCreateModal = true">
-      <i class="bi bi-plus-lg me-2"></i> New Project
+      <i class="bi bi-plus-lg me-2"></i> Nouveau projet
     </button>
   </div>
 </div>
@@ -16,25 +16,25 @@
 <div class="row g-3 mb-4 animate-slide-up" *ngIf="!loading">
   <div class="col-md-3 col-6">
     <div class="overview-card">
-      <span class="overview-label">Projects</span>
+      <span class="overview-label">Projets</span>
       <strong>{{ activeProjects }}</strong>
     </div>
   </div>
   <div class="col-md-3 col-6">
     <div class="overview-card">
-      <span class="overview-label">Tasks</span>
+      <span class="overview-label">Tâches</span>
       <strong>{{ totalTasks }}</strong>
     </div>
   </div>
   <div class="col-md-3 col-6">
     <div class="overview-card">
-      <span class="overview-label">Team Seats</span>
+      <span class="overview-label">Sièges d'équipe</span>
       <strong>{{ totalMembers }}</strong>
     </div>
   </div>
   <div class="col-md-3 col-6">
     <div class="overview-card" [class.needs-attention]="emptyProjects > 0">
-      <span class="overview-label">Needs Setup</span>
+      <span class="overview-label">À configurer</span>
       <strong>{{ emptyProjects }}</strong>
     </div>
   </div>
@@ -43,16 +43,16 @@
 <div class="next-step-panel mb-4 animate-slide-up" *ngIf="!loading && projects.length > 0">
   <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
     <div>
-      <h5 class="fw-bold text-dark mb-1">Recommended next step</h5>
+      <h5 class="fw-bold text-dark mb-1">Prochaine étape recommandée</h5>
       <p class="text-muted mb-0" *ngIf="emptyProjects > 0">
-        Add tasks and members to the projects that still need setup, so owners and members have a clear place to start.
+        Ajoutez des tâches et des membres aux projets qui doivent encore être configurés, afin que les propriétaires et les membres aient un point de départ clair.
       </p>
       <p class="text-muted mb-0" *ngIf="emptyProjects === 0 && largestProject">
-        Review {{ largestProject.name }} first. It currently has the most task activity in your workspace.
+        Examinez d'abord {{ largestProject.name }}. C'est lui qui a actuellement le plus d'activité de tâches dans votre espace de travail.
       </p>
     </div>
     <button class="btn btn-light-primary px-4 rounded-3 fw-bold align-self-lg-center" *ngIf="largestProject" (click)="selectProject(largestProject.id)">
-      Open Recommended Workspace <i class="bi bi-arrow-right ms-1"></i>
+      Ouvrir l'espace recommandé <i class="bi bi-arrow-right ms-1"></i>
     </button>
   </div>
 </div>
@@ -60,9 +60,9 @@
 <div class="row g-4 animate-slide-up">
   <div *ngIf="loading" class="col-12 text-center py-5">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+      <span class="visually-hidden">Chargement...</span>
     </div>
-    <p class="mt-2 text-muted">Loading your projects...</p>
+    <p class="mt-2 text-muted">Chargement de vos projets...</p>
   </div>
 
   <div class="col-md-6 col-lg-4" *ngFor="let project of projects" [hidden]="loading">
@@ -80,22 +80,22 @@
       </div>
       <div class="project-card-body p-4 pt-2">
         <p class="text-muted small mb-4 project-description">
-          {{ project.description || 'No description provided.' }}
+          {{ project.description || 'Aucune description fournie.' }}
         </p>
         
         <div class="project-stats d-flex gap-3 mb-4">
           <div class="stat-item">
             <span class="stat-value fw-bold">{{ project.taskCount || 0 }}</span>
-            <span class="stat-label text-muted extra-small">Tasks</span>
+            <span class="stat-label text-muted extra-small">Tâches</span>
           </div>
           <div class="stat-item border-start ps-3">
             <span class="stat-value fw-bold">{{ project.memberCount || 0 }}</span>
-            <span class="stat-label text-muted extra-small">Team</span>
+            <span class="stat-label text-muted extra-small">Équipe</span>
           </div>
         </div>
 
         <button class="btn btn-light-primary w-100 py-2 rounded-3 fw-semibold transition-all" (click)="selectProject(project.id)">
-          Open Workspace <i class="bi bi-arrow-right ms-1"></i>
+          Ouvrir l'espace <i class="bi bi-arrow-right ms-1"></i>
         </button>
       </div>
     </div>
@@ -107,181 +107,50 @@
       <div class="empty-state-icon mb-4">
         <i class="bi bi-folder-plus display-1 text-light-indigo"></i>
       </div>
-      <h3 class="fw-bold text-dark mb-2">Ready to start something new?</h3>
+      <h3 class="fw-bold text-dark mb-2">Prêt à commencer quelque chose de nouveau ?</h3>
       <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
-        You haven't been assigned to any projects yet. Create your first workspace to start collaborating.
+        Vous n'avez pas encore été affecté à des projets. Créez votre premier espace de travail pour commencer à collaborer.
       </p>
       <button class="btn btn-primary px-5 py-3 rounded-3 fw-bold shadow-sm" (click)="showCreateModal = true">
-        <i class="bi bi-plus-lg me-2"></i> Create Your First Project
+        <i class="bi bi-plus-lg me-2"></i> Créer votre premier projet
       </button>
     </div>
   </div>
 </div>
 
-<!-- Create Project Modal Overlay -->
-<div class="modal-overlay animate-fade-in" *ngIf="showCreateModal" (click)="showCreateModal = false">
-  <div class="modal-dialog-custom" (click)="$event.stopPropagation()">
-    <div class="modal-content border-0 shadow-2xl rounded-4 bg-white overflow-hidden">
-      <div class="modal-header-custom p-4 bg-light border-bottom d-flex justify-content-between align-items-center">
-        <h4 class="fw-bold text-dark mb-0">Create New Project</h4>
-        <button type="button" class="btn-close-custom" (click)="showCreateModal = false">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <form (ngSubmit)="createProject()">
-        <div class="modal-body p-4">
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control rounded-3" id="projName" name="name" [(ngModel)]="newProject.name" required placeholder="Project Name">
-            <label for="projName">Project Name</label>
-          </div>
-          <div class="form-floating mb-3">
-            <textarea class="form-control rounded-3" id="projDesc" name="description" [(ngModel)]="newProject.description" style="height: 100px" placeholder="Description"></textarea>
-            <label for="projDesc">Description</label>
-          </div>
-          <div class="form-floating mb-3">
-            <select class="form-select rounded-3" id="projMethod" name="methodology" [(ngModel)]="newProject.methodology">
-              <option value="Agile">Agile</option>
-              <option value="Scrum">Scrum</option>
-              <option value="Kanban">Kanban</option>
-              <option value="Waterfall">Waterfall</option>
-            </select>
-            <label for="projMethod">Methodology</label>
-          </div>
-        </div>
-        <div class="modal-footer-custom p-4 bg-light border-top d-flex gap-2 justify-content-end">
-          <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none" (click)="showCreateModal = false">Cancel</button>
-          <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm" [disabled]="!newProject.name">Create Project</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+<!-- Create Project Modal Redesigned V2 -->
+ <app-modal [isOpen]="showCreateModal" 
+            [title]="'Create Workspace'" 
+            [size]="'md'" 
+            (close)="showCreateModal = false">
+   
+   <form (ngSubmit)="createProject()" id="createProjectForm" class="mt-2">
+     <div class="mb-4">
+       <label class="metadata-label">Project Name</label>
+       <input type="text" class="form-control-premium w-100" name="name" [(ngModel)]="newProject.name" required placeholder="e.g. Q3 Roadmap">
+     </div>
+     
+     <div class="mb-4">
+       <label class="metadata-label">Description</label>
+       <textarea class="form-control-premium w-100" name="description" [(ngModel)]="newProject.description" rows="3" placeholder="What is this workspace about?"></textarea>
+     </div>
+     
+     <div class="mb-4">
+       <label class="metadata-label">Methodology</label>
+       <select class="form-control-premium w-100" name="methodology" [(ngModel)]="newProject.methodology">
+         <option value="Agile">Agile</option>
+         <option value="Scrum">Scrum</option>
+         <option value="Kanban">Kanban</option>
+         <option value="Waterfall">Waterfall</option>
+       </select>
+     </div>
+   </form>
+ 
+   <div modal-footer>
+     <button type="button" class="btn btn-light" (click)="showCreateModal = false">Cancel</button>
+     <button type="submit" form="createProjectForm" class="btn btn-primary-indigo" [disabled]="!newProject.name">
+       Create Workspace
+     </button>
+   </div>
+ </app-modal>
 
-<style>
-  .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-  .animate-slide-up { animation: slideUp 0.6s ease-out; }
-
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { 
-    from { opacity: 0; transform: translateY(30px); } 
-    to { opacity: 1; transform: translateY(0); } 
-  }
-
-  .project-card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.05) !important;
-  }
-
-  .overview-card, .next-step-panel {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-  }
-
-  .overview-card.needs-attention {
-    border-color: #fed7aa;
-    background: #fff7ed;
-  }
-
-  .overview-label {
-    display: block;
-    color: #64748b;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 0.25rem;
-  }
-
-  .overview-card strong {
-    color: #0f172a;
-    font-size: 1.8rem;
-    line-height: 1;
-  }
-
-  .project-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
-    border-color: #4f46e5 !important;
-  }
-
-  .methodology-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 50px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .methodology-badge.agile { background: #e0e7ff; color: #4338ca; }
-  .methodology-badge.scrum { background: #dcfce7; color: #166534; }
-  .methodology-badge.kanban { background: #fef9c3; color: #854d0e; }
-  .methodology-badge.waterfall { background: #fee2e2; color: #991b1b; }
-
-  .project-description {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.5;
-    height: 3rem;
-  }
-
-  .stat-value { display: block; font-size: 1.1rem; color: #1e293b; }
-  .stat-label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; }
-
-  .btn-light-primary {
-    background-color: #f1f5f9;
-    color: #4f46e5;
-    border: none;
-  }
-
-  .btn-light-primary:hover {
-    background-color: #4f46e5;
-    color: white;
-  }
-
-  .text-light-indigo { color: #e0e7ff; }
-
-  /* Modal Styles */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1050;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .modal-dialog-custom {
-    width: 100%;
-    max-width: 500px;
-    z-index: 1060;
-  }
-
-  .btn-close-custom {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    color: #64748b;
-    transition: color 0.2s;
-  }
-
-  .btn-close-custom:hover { color: #1e293b; }
-
-  .form-floating > .form-control:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-  }
-
-  .shadow-2xl {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  }
-</style>

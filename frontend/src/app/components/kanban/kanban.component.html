@@ -1,19 +1,19 @@
 <div class="kanban-wrapper animate-fade-in">
   <!-- Header Section -->
-  <div class="kanban-header-container px-4 py-4 mb-4 bg-white border-bottom shadow-sm">
+  <div class="kanban-header-container px-4 py-3 mb-3 bg-white border-bottom shadow-sm">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
       <div class="d-flex align-items-center">
-        <button class="btn btn-icon-back me-3 shadow-sm" routerLink="/dashboard" title="Back to Dashboard">
-          <i class="bi bi-arrow-left"></i>
+        <button class="btn btn-icon-back me-3 shadow-sm" routerLink="/dashboard" aria-label="Retour au tableau de bord">
+          <i class="bi bi-arrow-left" aria-hidden="true"></i>
         </button>
         <div>
-          <h1 class="h3 fw-bold text-dark mb-1">{{ project?.name || 'Project Kanban Board' }}</h1>
+          <h1 class="h3 fw-bold text-dark mb-1">{{ project?.name || 'Tableau Kanban du Projet' }}</h1>
           <div class="d-flex align-items-center gap-2">
             <span class="methodology-badge" [ngClass]="project?.methodology?.toLowerCase() || 'agile'">
               {{ project?.methodology || 'Agile' }}
             </span>
             <span class="text-muted small">&middot;</span>
-            <span class="text-muted small fw-medium">{{ totalTasksCount }} Total Tasks</span>
+            <span class="text-muted small fw-medium">{{ totalTasksCount }} Tâches totales</span>
           </div>
         </div>
       </div>
@@ -21,78 +21,120 @@
       <div class="d-flex flex-wrap align-items-center gap-2">
         <div class="view-switcher-modern bg-light p-1 rounded-3 d-flex me-md-2">
           <button class="btn btn-sm rounded-2 px-3 transition-all" [class.active]="activeView === 'kanban'" (click)="switchView('kanban')">
-            <i class="bi bi-kanban me-1"></i> Board
+            <i class="bi bi-kanban me-1"></i> Tableau
           </button>
           <button class="btn btn-sm rounded-2 px-3 transition-all" [class.active]="activeView === 'sprint'" (click)="switchView('sprint')">
             <i class="bi bi-view-stacked me-1"></i> Sprints
           </button>
         </div>
         
-        <div class="action-buttons d-flex gap-2">
-          <button class="btn btn-primary-indigo rounded-3 px-4 fw-bold shadow-sm" (click)="showCreateTaskModal = true">
-            <i class="bi bi-plus-lg me-1"></i> Add Task
-          </button>
-          <button class="btn btn-success-modern rounded-3 px-4 fw-bold shadow-sm" (click)="showInviteModal = true" *ngIf="canManageMembers()">
-            <i class="bi bi-person-plus me-1"></i> Add Member
-          </button>
-          <button class="btn btn-ai-sparkle rounded-3 px-4 fw-bold shadow-sm" (click)="requestAiTasks()">
-            <i class="bi bi-magic me-1"></i> AI Planner
-          </button>
-          <button class="btn btn-outline-danger-modern rounded-3 px-4 fw-bold" (click)="analyzeRisk()">
-            <i class="bi bi-shield-shaded me-1"></i> Risk Intel
-          </button>
-          <button class="btn btn-white border rounded-3 px-4 fw-bold shadow-sm" (click)="showMembersModal = true">
-            <i class="bi bi-people me-1"></i> Members
-          </button>
-          <button class="btn btn-white border rounded-3 px-4 fw-bold shadow-sm" (click)="openProjectSettings()" *ngIf="canManageMembers()">
-            <i class="bi bi-sliders me-1"></i> Settings
-          </button>
+          <!-- Desktop Actions -->
+          <div class="d-none d-lg-flex gap-2">
+            <button class="btn btn-light d-flex align-items-center gap-2" (click)="showMembersModal = true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              Members
+            </button>
+            <button class="btn btn-light d-flex align-items-center gap-2 text-success" (click)="showInviteModal = true" *ngIf="canManageMembers()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+              Add Member
+            </button>
+            <button class="btn btn-primary-indigo d-flex align-items-center gap-2" (click)="showCreateTaskModal = true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Task
+            </button>
+          </div>
+          
+          <!-- More Actions Dropdown Redesigned V4 -->
+          <div class="dropdown more-actions-dropdown">
+            <button class="btn-more-trigger" type="button" (click)="showMoreDropdown = !showMoreDropdown" [class.active]="showMoreDropdown">
+              <span class="fw-bold">Plus</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="ms-1 op-7"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            
+            <div class="command-palette-menu" [class.show]="showMoreDropdown" *ngIf="showMoreDropdown">
+              <div class="palette-section">
+                <button class="palette-item" (click)="requestAiTasks(); showMoreDropdown = false">
+                  <div class="palette-icon text-primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></div>
+                  <span class="palette-text">Planificateur IA</span>
+                </button>
+                <button class="palette-item" (click)="analyzeRisk(); showMoreDropdown = false">
+                  <div class="palette-icon text-danger"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
+                  <span class="palette-text">Analyse de risques</span>
+                </button>
+              </div>
+
+              <div class="palette-divider"></div>
+
+              <div class="palette-section">
+                <button class="palette-item" (click)="openProjectSettings(); showMoreDropdown = false" *ngIf="canManageMembers()">
+                  <div class="palette-icon text-zinc-500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+                  <span class="palette-text">Paramètres</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Project Health Panel -->
-    <div class="row g-3 mt-4 animate-slide-up">
-      <div class="col-md-2">
-        <div class="health-card bg-light-indigo border-0">
-          <span class="health-label">Total Tasks</span>
-          <strong class="health-value text-indigo">{{ totalTasksCount }}</strong>
+    <div class="row g-2 mt-3 animate-slide-up flex-nowrap overflow-x-auto pb-2 custom-scrollbar" style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
+      <div class="col-5 col-sm-4 col-md-2" style="scroll-snap-align: start; min-width: 130px;">
+        <div class="health-card h-100" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+          <span class="health-label">Tâches totales</span>
+          <strong class="health-value" style="color: #475569;">{{ totalTasksCount }}</strong>
         </div>
       </div>
-      <div class="col-md-2">
-        <div class="health-card" [class.bg-light-warning]="unassignedTasksCount > 0" [class.bg-light-success]="unassignedTasksCount === 0">
-          <span class="health-label">Unassigned</span>
-          <strong class="health-value" [class.text-warning]="unassignedTasksCount > 0" [class.text-success]="unassignedTasksCount === 0">{{ unassignedTasksCount }}</strong>
+      <div class="col-5 col-sm-4 col-md-2" style="scroll-snap-align: start; min-width: 130px;">
+        <div class="health-card h-100"
+             [style.background-color]="unassignedTasksCount > 0 ? '#fffceb' : '#f8fafc'" 
+             [style.border]="unassignedTasksCount > 0 ? '1px solid #fef3c7' : '1px solid #e2e8f0'">
+          <span class="health-label">Non assigné</span>
+          <strong class="health-value" [style.color]="unassignedTasksCount > 0 ? '#d97706' : '#475569'">{{ unassignedTasksCount }}</strong>
         </div>
       </div>
-      <div class="col-md-2">
-        <div class="health-card" [class.bg-light-warning]="inReview.length > 0" [class.bg-light-success]="inReview.length === 0">
-          <span class="health-label">Needs Review</span>
-          <strong class="health-value" [class.text-warning]="inReview.length > 0" [class.text-success]="inReview.length === 0">{{ inReview.length }}</strong>
+      <div class="col-5 col-sm-4 col-md-2" style="scroll-snap-align: start; min-width: 130px;">
+        <div class="health-card h-100"
+             [style.background-color]="inReview.length > 0 ? '#fffbeb' : '#f0fdf4'" 
+             [style.border]="inReview.length > 0 ? '1px solid #fef3c7' : '1px solid #dcfce7'">
+          <span class="health-label text-truncate">À réviser</span>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history text-warning" *ngIf="inReview.length > 0" style="color: #d97706 !important;"></i>
+            <strong class="health-value" [style.color]="inReview.length > 0 ? '#d97706' : '#198754'">{{ inReview.length }}</strong>
+          </div>
         </div>
       </div>
-      <div class="col-md-2">
-        <div class="health-card" [class.bg-light-danger]="overloadedMembersCount > 0" [class.bg-light-success]="overloadedMembersCount === 0">
-          <span class="health-label">Overloaded</span>
-          <strong class="health-value" [class.text-danger]="overloadedMembersCount > 0" [class.text-success]="overloadedMembersCount === 0">{{ overloadedMembersCount }}</strong>
+      <div class="col-5 col-sm-4 col-md-2" style="scroll-snap-align: start; min-width: 130px;">
+        <div class="health-card h-100"
+             [style.background-color]="overloadedMembersCount > 0 ? '#fef2f2' : '#f0fdf4'" 
+             [style.border]="overloadedMembersCount > 0 ? '1px solid #fee2e2' : '1px solid #dcfce7'">
+          <span class="health-label">Surchargé</span>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-danger" *ngIf="overloadedMembersCount > 0" style="color: #dc2626 !important;"></i>
+            <strong class="health-value" [style.color]="overloadedMembersCount > 0 ? '#dc2626' : '#198754'">{{ overloadedMembersCount }}</strong>
+          </div>
         </div>
       </div>
-      <div class="col-md-2">
-        <div class="health-card" [class.bg-light-danger]="highPriorityTasksCount > 0" [class.bg-light-success]="highPriorityTasksCount === 0">
-          <span class="health-label">High Priority</span>
-          <strong class="health-value" [class.text-danger]="highPriorityTasksCount > 0" [class.text-success]="highPriorityTasksCount === 0">{{ highPriorityTasksCount }}</strong>
+      <div class="col-5 col-sm-4 col-md-2" style="scroll-snap-align: start; min-width: 130px;">
+        <div class="health-card h-100"
+             [style.background-color]="highPriorityTasksCount > 0 ? '#fef2f2' : '#f0fdf4'" 
+             [style.border]="highPriorityTasksCount > 0 ? '1px solid #fee2e2' : '1px solid #dcfce7'">
+          <span class="health-label text-truncate">Priorité haute</span>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill text-danger" *ngIf="highPriorityTasksCount > 0" style="color: #dc2626 !important;"></i>
+            <strong class="health-value" [style.color]="highPriorityTasksCount > 0 ? '#dc2626' : '#198754'">{{ highPriorityTasksCount }}</strong>
+          </div>
         </div>
       </div>
-      <div class="col-md-2">
-        <div class="health-card bg-light-success border-0">
-          <span class="health-label">Completed</span>
-          <strong class="health-value text-success">{{ completed.length }}</strong>
+      <div class="col-5 col-sm-4 col-md-2" style="scroll-snap-align: start; min-width: 130px;">
+        <div class="health-card h-100" style="background-color: #f0fdf4; border: 1px solid #dcfce7;">
+          <span class="health-label">Terminé</span>
+          <strong class="health-value" style="color: #198754;">{{ completed.length }}</strong>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Kanban Board Grid -->
+    <!-- Kanban Board Grid -->
   <div class="kanban-board-container animate-slide-up" *ngIf="activeView === 'kanban'">
     <div class="kanban-row">
       <!-- To Do -->
@@ -101,61 +143,24 @@
           <div class="column-header">
             <div class="d-flex align-items-center">
               <span class="status-dot todo"></span>
-              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">To Do</h5>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">À faire</h5>
             </div>
             <span class="count-badge">{{ todo.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #todoList="cdkDropList" cdkDropList [cdkDropListData]="todo" [cdkDropListConnectedTo]="[inProgressList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'TODO')">
-            <div class="task-card" *ngFor="let task of todo" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
-                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
-              <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
-              <div class="card-content">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="task-title">{{ task.title }}</h6>
-                  <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
-                </div>
-                
-                <!-- Tooltip for non-assignees -->
-                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
-                  <i class="bi bi-lock-fill"></i>
-                </div>
-                <p class="task-desc">{{ task.description }}</p>
+            <!-- New Task Card Component -->
+            <app-task-card *ngFor="let task of todo"
+                [task]="task"
+                [canDrag]="isAssignee(task)"
+                [isOverdue]="isOverdue(task)"
+                (taskClick)="openTaskDetail($event)"
+                cdkDrag [cdkDragDisabled]="!isAssignee(task)">
+            </app-task-card>
 
-                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
-                  <i class="bi bi-magic text-primary me-1"></i>
-                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
-                </div>
-                
-                <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
-                  <span class="meta-item" *ngIf="task.storyPoints">
-                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
-                  </span>
-                  <span class="meta-item" *ngIf="task.dueDate">
-                    <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
-                  </span>
-                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
-                    <i class="bi bi-flag"></i> {{ task.sprintName }}
-                  </span>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="risk-badge" *ngIf="task.priority === 'critical'">
-                    <i class="bi bi-exclamation-circle-fill text-danger small"></i>
-                  </div>
-                  <div class="assignee ms-auto" *ngIf="task.assignee">
-                    <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
-                  </div>
-                </div>
-
-                <div class="approval-actions mt-3 pt-2 border-top d-flex gap-2" *ngIf="canApprove()">
-                  <button class="btn btn-sm btn-success-modern flex-grow-1 py-1" (click)="approveTask(task.id); $event.stopPropagation()">
-                    <i class="bi bi-check-lg me-1"></i> Approve
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger-modern flex-grow-1 py-1" (click)="sendBackTask(task.id); $event.stopPropagation()">
-                    <i class="bi bi-arrow-return-left me-1"></i> Reject
-                  </button>
-                </div>
-              </div>
+            <!-- Empty Column State -->
+            <div *ngIf="todo.length === 0" class="empty-column-placeholder animate-fade-in">
+              <i class="bi bi-inbox"></i>
+              <p class="mb-0 fw-medium">Aucune tâche ici pour le moment</p>
             </div>
           </div>
         </div>
@@ -167,61 +172,23 @@
           <div class="column-header">
             <div class="d-flex align-items-center">
               <span class="status-dot progress"></span>
-              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">In Progress</h5>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">En cours</h5>
             </div>
             <span class="count-badge">{{ inProgress.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #inProgressList="cdkDropList" cdkDropList [cdkDropListData]="inProgress" [cdkDropListConnectedTo]="[todoList, inReviewList, completedList]" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
-            <div class="task-card" *ngFor="let task of inProgress" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
-                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
-              <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
-              <div class="card-content">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="task-title">{{ task.title }}</h6>
-                  <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
-                </div>
+            <app-task-card *ngFor="let task of inProgress"
+                [task]="task"
+                [canDrag]="isAssignee(task)"
+                [isOverdue]="isOverdue(task)"
+                (taskClick)="openTaskDetail($event)"
+                cdkDrag [cdkDragDisabled]="!isAssignee(task)">
+            </app-task-card>
 
-                <!-- Tooltip for non-assignees -->
-                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
-                  <i class="bi bi-lock-fill"></i>
-                </div>
-                <p class="task-desc">{{ task.description }}</p>
-
-                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
-                  <i class="bi bi-magic text-primary me-1"></i>
-                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
-                </div>
-
-                <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
-                  <span class="meta-item" *ngIf="task.storyPoints">
-                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
-                  </span>
-                  <span class="meta-item" *ngIf="task.dueDate">
-                    <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
-                  </span>
-                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
-                    <i class="bi bi-flag"></i> {{ task.sprintName }}
-                  </span>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="risk-badge" *ngIf="task.priority === 'critical'">
-                    <i class="bi bi-exclamation-circle-fill text-danger small"></i>
-                  </div>
-                  <div class="assignee ms-auto" *ngIf="task.assignee">
-                    <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
-                  </div>
-                </div>
-
-                <div class="approval-actions mt-3 pt-2 border-top d-flex gap-2" *ngIf="canApprove()">
-                  <button class="btn btn-sm btn-success-modern flex-grow-1 py-1" (click)="approveTask(task.id); $event.stopPropagation()">
-                    <i class="bi bi-check-lg me-1"></i> Approve
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger-modern flex-grow-1 py-1" (click)="sendBackTask(task.id); $event.stopPropagation()">
-                    <i class="bi bi-arrow-return-left me-1"></i> Reject
-                  </button>
-                </div>
-              </div>
+            <!-- Empty Column State -->
+            <div *ngIf="inProgress.length === 0" class="empty-column-placeholder animate-fade-in">
+              <i class="bi bi-inbox"></i>
+              <p class="mb-0 fw-medium">Aucune tâche ici pour le moment</p>
             </div>
           </div>
         </div>
@@ -233,52 +200,26 @@
           <div class="column-header">
             <div class="d-flex align-items-center">
               <span class="status-dot review"></span>
-              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">In Review</h5>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">En révision</h5>
             </div>
             <span class="count-badge">{{ inReview.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #inReviewList="cdkDropList" cdkDropList [cdkDropListData]="inReview" [cdkDropListConnectedTo]="[todoList, inProgressList, completedList]" (cdkDropListDropped)="drop($event, 'IN_REVIEW')">
-            <div class="task-card" *ngFor="let task of inReview" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
-                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
-              <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
-              <div class="card-content">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="task-title">{{ task.title }}</h6>
-                  <span class="priority-badge" [ngClass]="task.priority?.toLowerCase() || 'medium'">{{ task.priority }}</span>
-                </div>
+            <app-task-card *ngFor="let task of inReview"
+                [task]="task"
+                [canDrag]="isAssignee(task)"
+                [canApprove]="canApprove()"
+                [isOverdue]="isOverdue(task)"
+                (taskClick)="openTaskDetail($event)"
+                (approve)="approveTask($event)"
+                (reject)="sendBackTask($event)"
+                cdkDrag [cdkDragDisabled]="!isAssignee(task)">
+            </app-task-card>
 
-                <!-- Tooltip for non-assignees -->
-                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
-                  <i class="bi bi-lock-fill"></i>
-                </div>
-                <p class="task-desc">{{ task.description }}</p>
-
-                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
-                  <i class="bi bi-magic text-primary me-1"></i>
-                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
-                </div>
-
-                <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
-                  <span class="meta-item" *ngIf="task.storyPoints">
-                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
-                  </span>
-                  <span class="meta-item" *ngIf="task.dueDate">
-                    <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
-                  </span>
-                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
-                    <i class="bi bi-flag"></i> {{ task.sprintName }}
-                  </span>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="risk-badge" *ngIf="task.priority === 'critical'">
-                    <i class="bi bi-exclamation-circle-fill text-danger small"></i>
-                  </div>
-                  <div class="assignee ms-auto" *ngIf="task.assignee">
-                    <div class="avatar-circle" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
-                  </div>
-                </div>
-              </div>
+            <!-- Empty Column State -->
+            <div *ngIf="inReview.length === 0" class="empty-column-placeholder animate-fade-in">
+              <i class="bi bi-check-circle"></i>
+              <p class="mb-0 fw-medium">Toutes les révisions sont terminées !</p>
             </div>
           </div>
         </div>
@@ -290,45 +231,23 @@
           <div class="column-header">
             <div class="d-flex align-items-center">
               <span class="status-dot completed"></span>
-              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">Completed</h5>
+              <h5 class="mb-0 fw-bold text-dark small text-uppercase letter-spacing-1">Terminé</h5>
             </div>
             <span class="count-badge">{{ completed.length }}</span>
           </div>
           <div class="kanban-list custom-scrollbar" #completedList="cdkDropList" cdkDropList [cdkDropListData]="completed" [cdkDropListConnectedTo]="[todoList, inProgressList, inReviewList]" (cdkDropListDropped)="drop($event, 'COMPLETED')">
-            <div class="task-card task-completed-card" *ngFor="let task of completed" cdkDrag [cdkDragDisabled]="!isAssignee(task)" (click)="openTaskDetail(task)"
-                 [ngClass]="{'drag-disabled': !isAssignee(task)}">
-              <div class="card-content">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h6 class="task-title text-decoration-line-through text-muted">{{ task.title }}</h6>
-                  <i class="bi bi-check-circle-fill text-success"></i>
-                </div>
+            <app-task-card *ngFor="let task of completed"
+                [task]="task"
+                [canDrag]="isAssignee(task)"
+                [isOverdue]="isOverdue(task)"
+                (taskClick)="openTaskDetail($event)"
+                cdkDrag [cdkDragDisabled]="!isAssignee(task)">
+            </app-task-card>
 
-                <!-- Tooltip for non-assignees -->
-                <div class="drag-lock-overlay" *ngIf="!isAssignee(task)" title="Only assignee can move this task">
-                  <i class="bi bi-lock-fill"></i>
-                </div>
-                <p class="task-desc">{{ task.description }}</p>
-
-                <div class="ai-assignment-note mb-2" *ngIf="task.assignmentReason">
-                  <i class="bi bi-magic text-primary me-1"></i>
-                  <span class="extra-small text-muted italic">{{ task.assignmentReason }}</span>
-                </div>
-
-                <div class="task-metadata mb-3 d-flex flex-wrap gap-2 opacity-50">
-                  <span class="meta-item" *ngIf="task.storyPoints">
-                    <i class="bi bi-layers"></i> {{ task.storyPoints }}
-                  </span>
-                  <span class="meta-item sprint-tag" *ngIf="task.sprintName">
-                    <i class="bi bi-flag"></i> {{ task.sprintName }}
-                  </span>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center" *ngIf="task.assignee">
-                  <div class="assignee ms-auto">
-                    <div class="avatar-circle bg-light text-muted border" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
-                  </div>
-                </div>
-              </div>
+            <!-- Empty Column State -->
+            <div *ngIf="completed.length === 0" class="empty-column-placeholder animate-fade-in">
+              <i class="bi bi-emoji-smile"></i>
+              <p class="mb-0 fw-medium">Aucune tâche terminée pour le moment</p>
             </div>
           </div>
         </div>
@@ -345,45 +264,23 @@
         </div>
         <div>
           <h3 class="h5 fw-bold mb-0 text-dark">{{ sprint }}</h3>
-          <span class="text-muted small fw-medium">{{ tasksBySprint[sprint].length }} Tasks</span>
+          <span class="text-muted small fw-medium">{{ tasksBySprint[sprint].length }} Tâches</span>
         </div>
         <div class="ms-auto">
           <span class="badge rounded-pill bg-white text-dark border shadow-sm px-3 py-2 fw-semibold small">
-            {{ sprint === 'Backlog' ? 'Unscheduled' : 'Active Sprint' }}
+            {{ sprint === 'Backlog' ? 'Non planifié' : 'Sprint actif' }}
           </span>
         </div>
       </div>
 
-      <div class="row g-4">
-        <div class="col-md-4 col-lg-3" *ngFor="let task of tasksBySprint[sprint]">
-          <div class="task-card h-100 shadow-sm" (click)="openTaskDetail(task)">
-            <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
-            <div class="card-content p-3">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="task-title fw-bold text-dark mb-0">{{ task.title }}</h6>
-                <span class="status-indicator-dot" [ngClass]="task.status.toLowerCase()" [title]="task.status"></span>
-              </div>
-              <p class="task-desc small text-muted mb-3">{{ task.description }}</p>
-              
-              <div class="task-metadata mb-3 d-flex flex-wrap gap-2">
-                <span class="meta-item" *ngIf="task.storyPoints">
-                  <i class="bi bi-layers"></i> {{ task.storyPoints }}
-                </span>
-                <span class="priority-badge-sm" [ngClass]="task.priority?.toLowerCase() || 'medium'">
-                  {{ task.priority }}
-                </span>
-              </div>
-
-              <div class="d-flex justify-content-between align-items-center mt-auto">
-                <div class="risk-badge" *ngIf="task.priority === 'critical'">
-                  <i class="bi bi-exclamation-circle-fill text-danger small"></i>
-                </div>
-                <div class="assignee ms-auto" *ngIf="task.assignee">
-                  <div class="avatar-circle-sm" [title]="task.assignee.name">{{ task.assignee.name.charAt(0) }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div class="sprint-tasks-row custom-scrollbar">
+        <div class="sprint-task-column" *ngFor="let task of tasksBySprint[sprint]">
+          <app-task-card
+              [task]="task"
+              [canDrag]="false"
+              [isOverdue]="isOverdue(task)"
+              (taskClick)="openTaskDetail($event)">
+          </app-task-card>
         </div>
       </div>
     </div>
@@ -393,754 +290,435 @@
       <div class="empty-state-icon mb-3">
         <i class="bi bi-calendar-x text-muted opacity-25" style="font-size: 4rem;"></i>
       </div>
-      <h4 class="text-muted fw-bold">No Sprints Found</h4>
-      <p class="text-muted small">Generate tasks with AI to automatically organize your project into sprints.</p>
+      <h4 class="text-muted fw-bold">Aucun sprint trouvé</h4>
+      <p class="text-muted small">Générez des tâches avec l'IA pour organiser automatiquement votre projet en sprints.</p>
     </div>
   </div>
 
-  <!-- Risk Analysis Modal -->
-  <div class="modal fade show" *ngIf="showRiskAnalysisModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header bg-danger text-white border-0 py-3">
-          <h5 class="modal-title fw-bold d-flex align-items-center">
-            <i class="bi bi-shield-shaded me-2"></i> Project Risk Intelligence
-          </h5>
-          <button type="button" class="btn-close btn-close-white" (click)="showRiskAnalysisModal = false"></button>
-        </div>
-        <div class="modal-body p-4 bg-light">
-          <!-- Loading State -->
-          <div class="text-center py-5" *ngIf="analyzingRisk">
-            <div class="spinner-grow text-danger mb-3" role="status"></div>
-            <h5 class="text-dark fw-bold">Analyzing Project Health...</h5>
-            <p class="text-muted small">Our AI is scanning tasks, team load, and potential bottlenecks.</p>
+  <!-- Project Intelligence Modal Redesigned V4 -->
+  <app-modal [isOpen]="showRiskAnalysisModal" 
+             [title]="'Intelligence des Risques du Projet'" 
+             [size]="'lg'" 
+             (close)="showRiskAnalysisModal = false"
+             [showFooter]="false"
+             class="risk-analysis-modal-v4">
+    
+    <div modal-header class="risk-header-v4">
+      <div class="d-flex align-items-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-white"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <span class="text-white fw-bold">Intelligence des Risques du Projet</span>
+      </div>
+    </div>
+
+    <div class="intel-report-container-v4">
+      <!-- Loading State -->
+      <div class="intel-loading-v4" *ngIf="analyzingRisk">
+        <div class="spinner-premium"></div>
+        <p class="mt-3 text-zinc-500">Génération du rapport d'intelligence...</p>
+      </div>
+
+      <div class="intel-grid-v4" *ngIf="!analyzingRisk && riskAnalysis">
+        <!-- Card 1: Critical Bottlenecks -->
+        <div class="intel-card-v4 border-red">
+          <div class="card-title-v4 text-red">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v8M12 14v8M17 7h-5a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2H3"/></svg>
+            Goulots d'étranglement critiques
           </div>
-
-          <!-- Analysis Content -->
-          <div *ngIf="!analyzingRisk && riskAnalysis">
-            <div class="row g-4">
-              <!-- Bottlenecks -->
-              <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
-                  <div class="card-body">
-                    <h6 class="fw-bold text-danger mb-3 d-flex align-items-center">
-                      <i class="bi bi-diagram-3 me-2"></i> Critical Bottlenecks
-                    </h6>
-                    <ul class="list-unstyled mb-0">
-                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.bottlenecks">
-                        <i class="bi bi-exclamation-triangle-fill text-warning me-2 small mt-1"></i>
-                        <span class="small text-dark">{{ item }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Overloaded Members -->
-              <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
-                  <div class="card-body">
-                    <h6 class="fw-bold text-warning mb-3 d-flex align-items-center">
-                      <i class="bi bi-people me-2"></i> Resource Load
-                    </h6>
-                    <ul class="list-unstyled mb-0">
-                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.overloaded_members">
-                        <i class="bi bi-person-x-fill text-danger me-2 small mt-1"></i>
-                        <span class="small text-dark">{{ item }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Likely Delays -->
-              <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
-                  <div class="card-body">
-                    <h6 class="fw-bold text-primary mb-3 d-flex align-items-center">
-                      <i class="bi bi-clock-history me-2"></i> Likely Delays
-                    </h6>
-                    <ul class="list-unstyled mb-0">
-                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.likely_delays">
-                        <i class="bi bi-calendar-x text-primary me-2 small mt-1"></i>
-                        <span class="small text-dark">{{ item }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recommendations -->
-              <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
-                  <div class="card-body">
-                    <h6 class="fw-bold text-success mb-3 d-flex align-items-center">
-                      <i class="bi bi-lightbulb me-2"></i> Recommendations
-                    </h6>
-                    <ul class="list-unstyled mb-0">
-                      <li class="mb-2 d-flex align-items-start" *ngFor="let item of riskAnalysis.recommendations">
-                        <i class="bi bi-check2-circle text-success me-2 small mt-1"></i>
-                        <span class="small text-dark">{{ item }}</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+          <div class="card-list-v4">
+            <div class="card-item-v4" *ngFor="let b of riskAnalysis.bottlenecks">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="3" class="mt-1 flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              <span class="item-text-v4">{{ b }}</span>
             </div>
           </div>
         </div>
-        <div class="modal-footer border-0 bg-white py-3">
-          <button type="button" class="btn btn-light rounded-pill px-4" (click)="showRiskAnalysisModal = false">Close Analysis</button>
-          <button type="button" class="btn btn-danger rounded-pill px-4" (click)="analyzeRisk()" *ngIf="!analyzingRisk">
-            <i class="bi bi-arrow-clockwise me-1"></i> Re-Analyze
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Member Management Modal -->
-  <div class="modal fade show" *ngIf="showMembersModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border-0 shadow-lg rounded-4">
-        <div class="modal-header border-0 p-4">
-          <h5 class="modal-title fw-bold text-dark">Project Members</h5>
-          <button type="button" class="btn-close" (click)="showMembersModal = false"></button>
-        </div>
-        <div class="modal-body p-4 pt-0">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <p class="text-muted mb-0">Manage roles, skills, and workload for your team.</p>
-            <button class="btn btn-primary-indigo btn-sm rounded-3 px-3 fw-bold" (click)="showInviteModal = true" *ngIf="canManageMembers()">
-              <i class="bi bi-person-plus me-1"></i> Invite Member
-            </button>
+        <!-- Card 2: Resource Capacity -->
+        <div class="intel-card-v4 border-amber">
+          <div class="card-title-v4 text-amber">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Charge des ressources
           </div>
-
-          <div class="table-responsive">
-            <table class="table table-hover align-middle border-0">
-              <thead>
-                <tr class="text-muted small text-uppercase">
-                  <th class="border-0 px-0">Member</th>
-                  <th class="border-0">Role</th>
-                  <th class="border-0">Workload</th>
-                  <th class="border-0 text-end" *ngIf="canManageMembers()">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let member of projectMembers">
-                  <td class="px-0 border-0 py-3">
-                    <div class="d-flex align-items-center">
-                      <div class="avatar-circle me-3">{{ member.user.name.charAt(0) }}</div>
-                      <div>
-                        <div class="fw-bold text-dark">{{ member.user.name }}</div>
-                        <div class="small text-muted">{{ member.user.email }}</div>
-                      </div>
-                    </div>
-                    <div class="mt-2" *ngIf="member.user.skills">
-                      <span class="badge bg-light text-muted border rounded-pill me-1" *ngFor="let skill of member.user.skills.split(',')">
-                        {{ skill.trim() }}
-                      </span>
-                    </div>
-                  </td>
-                  <td class="border-0">
-                    <select class="form-select form-select-sm rounded-pill border-0 bg-light fw-medium w-auto"
-                            [(ngModel)]="member.projectRole"
-                            (change)="updateMemberRole(member.user.id, member.projectRole)"
-                            [disabled]="!canManageMembers() || member.projectRole === 'OWNER'">
-                      <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
-                    </select>
-                  </td>
-                  <td class="border-0">
-                    <div class="d-flex align-items-center">
-                      <div class="progress flex-grow-1 me-2" style="height: 6px; min-width: 60px;">
-                        <div class="progress-bar" [ngClass]="getMemberWorkload(member.user.id) >= 5 ? 'bg-danger' : (getMemberWorkload(member.user.id) === 0 ? 'bg-secondary' : 'bg-success')"
-                             [style.width.%]="(getMemberWorkload(member.user.id) / 10) * 100"></div>
-                      </div>
-                      <span class="small fw-bold" [class.text-danger]="getMemberWorkload(member.user.id) >= 5" [class.text-muted]="getMemberWorkload(member.user.id) === 0">
-                        {{ getMemberWorkload(member.user.id) }} active
-                      </span>
-                      <span class="ms-2 badge bg-soft-danger text-danger extra-small" *ngIf="getMemberWorkload(member.user.id) >= 5">Overloaded</span>
-                      <span class="ms-2 badge bg-soft-secondary text-secondary extra-small" *ngIf="getMemberWorkload(member.user.id) === 0">Idle</span>
-                    </div>
-                  </td>
-                  <td class="border-0 text-end" *ngIf="canManageMembers()">
-                    <button class="btn btn-link text-danger p-0" (click)="removeMember(member.user.id)" *ngIf="member.projectRole !== 'OWNER'">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Invite Member Modal -->
-  <div class="modal fade show" *ngIf="showInviteModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1060;" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header border-0 p-4 pb-0 bg-white">
-          <h5 class="modal-title fw-bold text-dark">Add Team Member</h5>
-          <button type="button" class="btn-close" (click)="showInviteModal = false"></button>
-        </div>
-        <div class="modal-body p-4 bg-white">
-          <p class="text-muted small mb-4">Search an existing user, choose their project role, and add them to this workspace.</p>
-
-          <div class="mb-3 position-relative">
-            <label class="form-label small fw-bold text-muted text-uppercase mb-2">User Email or Name</label>
-            <div class="input-group">
-              <span class="input-group-text border-0 bg-light rounded-start-3"><i class="bi bi-search text-muted"></i></span>
-              <input type="text" class="form-control border-0 bg-light shadow-none rounded-end-3 py-2"
-                     [(ngModel)]="inviteEmail" (ngModelChange)="onSearchUsers($event)"
-                     placeholder="Search by name or email...">
+          <div class="card-list-v4">
+            <div class="card-item-v4" *ngFor="let m of riskAnalysis.overloaded_members">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3" class="mt-1 flex-shrink-0"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span class="item-text-v4">{{ m }}</span>
             </div>
+          </div>
+        </div>
 
-            <div class="search-results-dropdown shadow-lg rounded-3 mt-1 position-absolute w-100 bg-white border"
-                 *ngIf="searchResults.length > 0" style="z-index: 1070; max-height: 200px; overflow-y: auto;">
-              <div class="list-group list-group-flush">
-                <button type="button" class="list-group-item list-group-item-action border-0 py-2"
-                        *ngFor="let user of searchResults" (click)="selectUser(user)">
-                  <div class="d-flex align-items-center">
-                    <div class="avatar-circle-sm me-2 bg-primary text-white" style="width: 30px; height: 30px; font-size: 12px;">
-                      {{ user.name.charAt(0) }}
-                    </div>
-                    <div>
-                      <div class="fw-bold small">{{ user.name }}</div>
-                      <div class="text-muted smaller">{{ user.email }}</div>
-                    </div>
+        <!-- Card 3: Likely Delays -->
+        <div class="intel-card-v4 border-blue">
+          <div class="card-title-v4 text-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Retards probables
+          </div>
+          <div class="card-list-v4">
+            <div class="card-item-v4" *ngFor="let d of riskAnalysis.likely_delays">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="3" class="mt-1 flex-shrink-0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span class="item-text-v4">{{ d }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: AI Recommendations -->
+        <div class="intel-card-v4 border-green">
+          <div class="card-title-v4 text-green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+            Recommandations
+          </div>
+          <div class="card-list-v4">
+            <div class="card-item-v4" *ngFor="let r of riskAnalysis.recommendations">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" class="mt-1 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="item-text-v4">{{ r }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 p-4 text-center" *ngIf="!analyzingRisk">
+        <button class="btn btn-light rounded-3 px-5 py-2 fw-bold" (click)="analyzeRisk()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="me-2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          Réanalyser le projet
+        </button>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Member Management Modal Redesigned V2 -->
+  <app-modal [isOpen]="showMembersModal" 
+             [title]="'Team Members'" 
+             [size]="'lg'" 
+             (close)="showMembersModal = false">
+    
+    <div modal-header>
+      <button class="btn btn-primary-indigo btn-sm" (click)="showInviteModal = true" *ngIf="canManageMembers()">
+        Add Member
+      </button>
+    </div>
+
+    <div class="p-1">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle border-0">
+          <thead>
+            <tr class="text-zinc-400 extra-small text-uppercase">
+              <th class="border-0 px-0">Member</th>
+              <th class="border-0">Role</th>
+              <th class="border-0">Workload</th>
+              <th class="border-0 text-end" *ngIf="canManageMembers()"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let member of projectMembers" class="border-bottom border-zinc-50">
+              <td class="px-0 border-0 py-3">
+                <div class="d-flex align-items-center">
+                  <div class="avatar-circle-sm bg-zinc-900 text-white me-3">{{ member.user.name.charAt(0) }}</div>
+                  <div>
+                    <div class="fw-medium text-zinc-900 small">{{ member.user.name }}</div>
+                    <div class="extra-small text-zinc-400">{{ member.user.email }}</div>
                   </div>
+                </div>
+              </td>
+              <td class="border-0">
+                <select class="form-select border-0 bg-transparent extra-small fw-medium p-0 text-zinc-600"
+                        [(ngModel)]="member.projectRole"
+                        (change)="updateMemberRole(member.user.id, member.projectRole)"
+                        [disabled]="!canManageMembers() || member.projectRole === 'OWNER'">
+                  <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+                </select>
+              </td>
+              <td class="border-0">
+                <div class="d-flex align-items-center gap-2" style="max-width: 100px;">
+                  <div class="progress flex-grow-1 bg-zinc-100" style="height: 2px;">
+                    <div class="progress-bar bg-zinc-900" 
+                         [style.width.%]="(getMemberWorkload(member.user.id) / 10) * 100"></div>
+                  </div>
+                  <span class="extra-small text-zinc-400">{{ getMemberWorkload(member.user.id) }}</span>
+                </div>
+              </td>
+              <td class="border-0 text-end" *ngIf="canManageMembers()">
+                <button class="btn btn-link text-zinc-400 p-1 hover-text-danger" (click)="removeMember(member.user.id)" *ngIf="member.projectRole !== 'OWNER'">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
-              </div>
-            </div>
-          </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </app-modal>
 
-          <div class="mb-4">
-            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Project Role</label>
-            <select class="form-select border-0 bg-light shadow-none rounded-3 py-2 fw-medium" [(ngModel)]="inviteRole">
-              <option value="ADMIN">Admin (Can manage tasks and members)</option>
-              <option value="MEMBER">Member (Can update assigned work)</option>
-              <option value="VIEWER">Viewer (Read-only access)</option>
+  <!-- Invite Member Modal Redesigned V2 -->
+  <app-modal [isOpen]="showInviteModal" 
+             [title]="'Invite Member'" 
+             [size]="'md'" 
+             (close)="showInviteModal = false">
+    
+    <div class="p-1">
+      <div class="mb-4 position-relative">
+        <label class="metadata-label">Search users</label>
+        <input type="text" class="form-control-premium w-100"
+               [(ngModel)]="inviteEmail" (ngModelChange)="onSearchUsers($event)"
+               placeholder="Name or email address...">
+
+        <!-- Search Results Dropdown -->
+        <div class="search-results-dropdown shadow-premium rounded-3 mt-2 position-absolute w-100 bg-white border border-zinc-100 overflow-hidden"
+             *ngIf="searchResults.length > 0" style="z-index: 1070; max-height: 200px; overflow-y: auto;">
+          <div class="list-group list-group-flush">
+            <button type="button" class="list-group-item list-group-item-action border-0 py-2 px-3 d-flex align-items-center gap-3"
+                    *ngFor="let user of searchResults" (click)="selectUser(user)">
+              <div class="avatar-circle-sm bg-zinc-900 text-white">{{ user.name.charAt(0) }}</div>
+              <div>
+                <div class="fw-medium text-zinc-900 small">{{ user.name }}</div>
+                <div class="text-zinc-400 extra-small">{{ user.email }}</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="metadata-label">Project Role</label>
+        <select class="form-control-premium w-100" [(ngModel)]="inviteRole">
+          <option value="ADMIN">Administrator</option>
+          <option value="MEMBER">Member</option>
+          <option value="VIEWER">Viewer</option>
+        </select>
+      </div>
+    </div>
+
+    <div modal-footer>
+      <button class="btn btn-light" (click)="showInviteModal = false">Cancel</button>
+      <button class="btn btn-primary-indigo"
+              (click)="inviteMember()" [disabled]="!inviteEmail">
+        Send Invitation
+      </button>
+    </div>
+  </app-modal>
+
+  <!-- Create Task Modal Redesigned -->
+  <app-modal [isOpen]="showCreateTaskModal" 
+             [title]="'Nouvelle Tâche'" 
+             [size]="'md'" 
+             (close)="showCreateTaskModal = false">
+    
+    <div class="p-1">
+      <form (ngSubmit)="createTask()" id="createTaskForm">
+        <div class="mb-4">
+          <label class="metadata-label">Titre</label>
+          <input type="text" class="form-control-premium w-100" name="title" [(ngModel)]="newTask.title" required placeholder="Qu'y a-t-il à faire ?">
+        </div>
+
+        <div class="mb-4">
+          <label class="metadata-label">Description</label>
+          <textarea class="form-control-premium w-100" name="description" [(ngModel)]="newTask.description" rows="3" placeholder="Ajoutez des détails..."></textarea>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="metadata-label">Priorité</label>
+            <select class="form-control-premium w-100" name="priority" [(ngModel)]="newTask.priority">
+              <option value="High">Haute</option>
+              <option value="Medium">Moyenne</option>
+              <option value="Low">Basse</option>
+              <option value="Critical">Critique</option>
             </select>
           </div>
+          <div class="col-6">
+            <label class="metadata-label d-flex justify-content-between">
+              Assigné
+              <span class="text-primary cursor-pointer extra-small fw-bold" (click)="suggestAssignee()">
+                <i class="bi bi-magic"></i> Auto-IA
+              </span>
+            </label>
+            <select class="form-control-premium w-100" name="assigneeId" [(ngModel)]="newTask.assigneeId">
+              <option [ngValue]="null">Non assigné</option>
+              <option *ngFor="let member of projectMembers" [value]="member.user.id">
+                {{ member.user.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
 
-          <button class="btn btn-primary-indigo w-100 py-3 fw-bold rounded-3 shadow-sm"
-                  (click)="inviteMember()" [disabled]="!inviteEmail">
-            <i class="bi bi-person-plus-fill me-2"></i> Add to Project
+    <div modal-footer>
+      <button type="button" class="btn btn-light rounded-3 px-4 fw-bold" (click)="showCreateTaskModal = false">Annuler</button>
+      <button type="submit" form="createTaskForm" class="btn btn-primary-indigo rounded-3 px-4 fw-bold shadow-sm" [disabled]="!newTask.title">
+        Créer la tâche
+      </button>
+    </div>
+  </app-modal>
+
+  <!-- Task Detail Modal Redesigned V2 -->
+  <app-modal [isOpen]="showTaskDetailModal && !!selectedTask" 
+             [size]="'lg'" 
+             (close)="closeTaskDetail()"
+             [showFooter]="false">
+    
+    <div modal-header>
+      <div class="status-pill" [ngClass]="selectedTask?.status?.toLowerCase()">
+        {{ selectedTask?.status?.replace('_', ' ') }}
+      </div>
+    </div>
+
+    <div class="task-modal-content" *ngIf="selectedTask">
+      <!-- Main Content -->
+      <div class="task-modal-main">
+        <input class="task-title-input" [(ngModel)]="selectedTask.title" 
+               placeholder="Untitled Task"
+               [disabled]="!canEditTask(selectedTask)">
+        
+        <div class="mb-4">
+          <textarea class="task-description-area w-100" 
+                    [(ngModel)]="selectedTask.description"
+                    placeholder="Add a detailed description..."
+                    [disabled]="!canEditTask(selectedTask)"></textarea>
+        </div>
+
+        <!-- AI Recommendation Section -->
+        <div class="ai-reasoning-card animate-fade-in" *ngIf="selectedTask.assignmentReason">
+          <div class="ai-badge">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 1L7.5 4.5L11 6L7.5 7.5L6 11L4.5 7.5L1 6L4.5 4.5L6 1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            AI Suggestion
+          </div>
+          <p class="mb-0 small text-zinc-600">{{ selectedTask.assignmentReason }}</p>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-5" *ngIf="canEditTask(selectedTask) || canDeleteTask(selectedTask)">
+          <button class="btn btn-light" 
+                  *ngIf="canDeleteTask(selectedTask)" (click)="deleteTask(selectedTask.id)">
+            Delete
+          </button>
+          <button class="btn btn-primary-indigo" 
+                  *ngIf="canEditTask(selectedTask)" (click)="updateTaskDetails()">
+            Save changes
           </button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Create Task Modal -->
-  <div class="modal fade show" *ngIf="showCreateTaskModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4">
-        <div class="modal-header border-0 pb-0 px-4 pt-4">
-          <h5 class="modal-title fw-bold text-dark">Create New Task</h5>
-          <button type="button" class="btn-close shadow-none" (click)="showCreateTaskModal = false"></button>
-        </div>
-        <form (ngSubmit)="createTask()">
-          <div class="modal-body p-4">
-            <div class="mb-3">
-              <label class="form-label fw-semibold text-muted small">TITLE</label>
-              <input type="text" class="form-control form-control-lg border-0 bg-light shadow-none" name="title" [(ngModel)]="newTask.title" required placeholder="Enter task title...">
+      <!-- Sidebar Metadata -->
+      <div class="task-modal-sidebar">
+        <div class="metadata-section">
+          <label class="metadata-label">Assignee</label>
+          <div class="metadata-value">
+            <div class="avatar-circle-sm bg-zinc-900 text-white" style="width: 20px; height: 20px; font-size: 10px;" *ngIf="selectedTask.assignee">
+              {{ selectedTask.assignee.name.charAt(0) }}
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-semibold text-muted small">DESCRIPTION</label>
-              <textarea class="form-control border-0 bg-light shadow-none" name="description" [(ngModel)]="newTask.description" rows="3" placeholder="Add some details about the task..."></textarea>
-            </div>
-            <div class="row g-3">
-              <div class="col-6">
-                <label class="form-label fw-semibold text-muted small">PRIORITY</label>
-                <select class="form-select border-0 bg-light shadow-none" name="priority" [(ngModel)]="newTask.priority">
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                  <option value="Critical">Critical</option>
-                </select>
-              </div>
-              <div class="col-6">
-                <label class="form-label fw-semibold text-muted small d-flex justify-content-between">
-                  ASSIGNEE
-                  <span class="text-primary cursor-pointer" style="font-size: 0.7rem;" (click)="suggestAssignee()">
-                    <i class="bi bi-magic"></i> Auto
-                  </span>
-                </label>
-                <select class="form-select border-0 bg-light shadow-none" name="assigneeId" [(ngModel)]="newTask.assigneeId">
-                  <option [ngValue]="null">Unassigned</option>
-                  <option *ngFor="let member of projectMembers" [value]="member.user.id">
-                    {{ member.user.name }} ({{ getMemberWorkload(member.user.id) }} active)
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer border-0 p-4">
-            <button type="button" class="btn btn-light px-4 rounded-pill" (click)="showCreateTaskModal = false">Cancel</button>
-            <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold" [disabled]="!newTask.title">Add Task</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Task Detail Modal -->
-  <div class="modal fade show" *ngIf="showTaskDetailModal && selectedTask" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header border-0 bg-white py-3 px-4 d-flex align-items-center">
-          <div class="d-flex align-items-center">
-            <span class="status-indicator-dot me-2" [ngClass]="selectedTask.status.toLowerCase()"></span>
-            <span class="text-uppercase small fw-bold text-muted letter-spacing-1">{{ selectedTask.status.replace('_', ' ') }}</span>
-          </div>
-          <button type="button" class="btn-close" (click)="closeTaskDetail()"></button>
-        </div>
-        <div class="modal-body p-4 bg-white">
-          <div class="mb-4">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <h4 class="fw-bold text-dark mb-0">{{ selectedTask.title }}</h4>
-              <span class="priority-badge" [ngClass]="selectedTask.priority?.toLowerCase() || 'medium'">
-                {{ selectedTask.priority }}
-              </span>
-            </div>
-          </div>
-
-          <div class="mb-4">
-            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Description</label>
-            <textarea class="form-control border-0 bg-light shadow-none rounded-3 fw-medium p-3" 
-                      rows="4" [(ngModel)]="selectedTask.description"
-                      [disabled]="!canEditTask(selectedTask)"></textarea>
-          </div>
-
-          <div class="mb-4 animate-fade-in" *ngIf="selectedTask.assignmentReason">
-            <label class="form-label small fw-bold text-primary text-uppercase mb-2">
-              <i class="bi bi-magic me-1"></i> AI Assignment Intel
-            </label>
-            <div class="p-3 bg-light-indigo rounded-3 border-0">
-              <p class="mb-0 small text-dark fw-medium">{{ selectedTask.assignmentReason }}</p>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2" *ngIf="canEditTask(selectedTask) || canDeleteTask(selectedTask)">
-            <button class="btn btn-outline-danger-modern border-0 rounded-3 px-4 fw-bold" 
-                    *ngIf="canDeleteTask(selectedTask)" (click)="deleteTask(selectedTask.id)">
-              <i class="bi bi-trash3 me-1"></i> Delete
-            </button>
-            <button class="btn btn-primary-indigo rounded-3 px-4 fw-bold shadow-sm" 
-                    *ngIf="canEditTask(selectedTask)" (click)="updateTaskDetails()">
-              <i class="bi bi-check2-all me-1"></i> Save Changes
-            </button>
-          </div>
-
-          <div class="row g-4 mb-4">
-            <div class="col-6">
-              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Assignee</label>
-              <select class="form-select form-select-sm border-0 bg-light shadow-none rounded-3 fw-medium" 
-                      [ngModel]="selectedTask.assignee?.id || 'null'"
-                      (change)="updateTaskAssignee(selectedTask.id, $any($event.target).value)"
-                      [disabled]="!canReassign()">
-                <option value="null">Unassigned</option>
-                <option *ngFor="let member of projectMembers" [value]="member.user.id">
-                  {{ member.user.name }}
-                </option>
-              </select>
-            </div>
-            <div class="col-6">
-              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Sprint</label>
-              <div class="d-flex align-items-center">
-                <i class="bi bi-flag text-primary me-2"></i>
-                <span class="fw-medium text-dark">{{ selectedTask.sprintName || 'Backlog' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="row g-4 mb-2">
-            <div class="col-6" *ngIf="selectedTask.storyPoints">
-              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Story Points</label>
-              <div class="d-flex align-items-center">
-                <i class="bi bi-layers text-indigo me-2"></i>
-                <span class="fw-medium text-dark">{{ selectedTask.storyPoints }} Points</span>
-              </div>
-            </div>
-            <div class="col-6" *ngIf="selectedTask.dueDate">
-              <label class="form-label small fw-bold text-muted text-uppercase mb-2">Due Date</label>
-              <div class="d-flex align-items-center">
-                <i class="bi bi-calendar3 text-danger me-2"></i>
-                <span class="fw-medium text-dark">{{ selectedTask.dueDate | date:'MMMM d, y' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-4 border-top" *ngIf="selectedTask.dependsOn && selectedTask.dependsOn.length > 0">
-            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Dependencies</label>
-            <div class="d-flex flex-wrap gap-2">
-              <span class="badge bg-light text-dark border rounded-pill px-3 py-2 fw-medium" *ngFor="let dep of selectedTask.dependsOn">
-                <i class="bi bi-link-45deg me-1"></i> {{ dep }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer border-0 bg-light p-3">
-          <button type="button" class="btn btn-white border rounded-pill px-4 fw-bold shadow-sm" (click)="closeTaskDetail()">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Project Settings Modal -->
-  <div class="modal fade show" *ngIf="showProjectSettingsModal" style="display: block; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header border-0 p-4">
-          <div>
-            <h5 class="modal-title fw-bold text-dark">Project Settings</h5>
-            <p class="text-muted small mb-0">Owner and admin controls for this workspace.</p>
-          </div>
-          <button type="button" class="btn-close" (click)="showProjectSettingsModal = false"></button>
-        </div>
-        <div class="modal-body p-4 pt-0">
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted text-uppercase">Name</label>
-            <input class="form-control rounded-3" [(ngModel)]="projectSettings.name">
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted text-uppercase">Description</label>
-            <textarea class="form-control rounded-3" rows="3" [(ngModel)]="projectSettings.description"></textarea>
-          </div>
-          <div class="mb-4">
-            <label class="form-label small fw-bold text-muted text-uppercase">Methodology</label>
-            <select class="form-select rounded-3" [(ngModel)]="projectSettings.methodology">
-              <option value="Agile">Agile</option>
-              <option value="Scrum">Scrum</option>
-              <option value="Kanban">Kanban</option>
-              <option value="Waterfall">Waterfall</option>
+            <select class="form-select border-0 bg-transparent p-0 extra-small fw-medium text-zinc-900" 
+                    [ngModel]="selectedTask.assignee?.id || 'null'"
+                    (change)="updateTaskAssignee(selectedTask.id, $any($event.target).value)"
+                    [disabled]="!canReassign()">
+              <option value="null">Unassigned</option>
+              <option *ngFor="let member of projectMembers" [value]="member.user.id">
+                {{ member.user.name }}
+              </option>
             </select>
           </div>
+        </div>
 
-          <div class="border rounded-4 p-3 mb-4" *ngIf="isOwner()">
-            <label class="form-label small fw-bold text-muted text-uppercase">Transfer ownership</label>
-            <p class="extra-small text-muted mb-2">Warning: You will lose owner permissions after transfer.</p>
-            <div class="d-flex gap-2">
-              <select class="form-select rounded-3" [(ngModel)]="projectSettings.newOwnerId">
-                <option [ngValue]="null">Select member</option>
-                <option *ngFor="let member of projectMembers" [ngValue]="member.user.id" [disabled]="member.projectRole === 'OWNER'">
-                  {{ member.user.name }} - {{ member.projectRole }}
-                </option>
-              </select>
-              <button class="btn btn-outline-primary fw-bold" (click)="transferOwnership()" [disabled]="!projectSettings.newOwnerId">Transfer</button>
-            </div>
+        <div class="metadata-section">
+          <label class="metadata-label">Sprint</label>
+          <div class="metadata-value">
+            <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+            {{ selectedTask.sprintName || 'Backlog' }}
           </div>
+        </div>
 
-          <div class="d-flex justify-content-between gap-2">
-            <button class="btn btn-outline-danger fw-bold" (click)="deleteProject()" *ngIf="isOwner()">
-              <i class="bi bi-trash3 me-1"></i> Delete Project
-            </button>
-            <div class="ms-auto d-flex gap-2">
-              <button class="btn btn-light fw-bold" (click)="showProjectSettingsModal = false">Cancel</button>
-              <button class="btn btn-primary-indigo fw-bold" (click)="saveProjectSettings()" [disabled]="!projectSettings.name">Save Settings</button>
-            </div>
+        <div class="metadata-section">
+          <label class="metadata-label">Priority</label>
+          <div class="metadata-value">
+            <span class="priority-badge" [ngClass]="selectedTask.priority?.toLowerCase() || 'medium'">
+              {{ selectedTask.priority }}
+            </span>
+          </div>
+        </div>
+
+        <div class="metadata-section" *ngIf="selectedTask.storyPoints">
+          <label class="metadata-label">Story Points</label>
+          <div class="metadata-value">
+            <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+            {{ selectedTask.storyPoints }}
+          </div>
+        </div>
+
+        <div class="metadata-section" *ngIf="selectedTask.dueDate">
+          <label class="metadata-label">Due Date</label>
+          <div class="metadata-value">
+            <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            {{ selectedTask.dueDate | date:'MMM d, y' }}
+          </div>
+        </div>
+
+        <div class="metadata-section" *ngIf="selectedTask.dependsOn?.length">
+          <label class="metadata-label">Dependencies</label>
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            <span class="badge bg-zinc-100 text-zinc-600 border-0 rounded px-2 py-1 extra-small fw-medium" *ngFor="let dep of selectedTask.dependsOn">
+              {{ dep }}
+            </span>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </app-modal>
+
+  <!-- Project Settings Modal Redesigned V2 -->
+  <app-modal [isOpen]="showProjectSettingsModal" 
+             [title]="'Project Settings'" 
+             [size]="'md'" 
+             (close)="showProjectSettingsModal = false">
+    
+    <div class="p-1">
+      <div class="mb-4">
+        <label class="metadata-label">Workspace Name</label>
+        <input class="form-control-premium w-100" [(ngModel)]="projectSettings.name" placeholder="Enter project name">
+      </div>
+      
+      <div class="mb-4">
+        <label class="metadata-label">Description</label>
+        <textarea class="form-control-premium w-100" rows="3" [(ngModel)]="projectSettings.description" placeholder="Optional description..."></textarea>
+      </div>
+      
+      <div class="mb-4">
+        <label class="metadata-label">Methodology</label>
+        <select class="form-control-premium w-100" [(ngModel)]="projectSettings.methodology">
+          <option value="Agile">Agile</option>
+          <option value="Scrum">Scrum</option>
+          <option value="Kanban">Kanban</option>
+          <option value="Waterfall">Waterfall</option>
+        </select>
+      </div>
+
+      <div class="p-4 rounded-3 bg-zinc-50 border border-zinc-100 mb-4" *ngIf="isOwner()">
+        <label class="metadata-label text-zinc-900 fw-bold">Danger Zone</label>
+        <p class="extra-small text-zinc-500 mb-3">Transfer ownership to another member. This action is permanent.</p>
+        <div class="d-flex gap-2">
+          <select class="form-control-premium flex-grow-1" [(ngModel)]="projectSettings.newOwnerId">
+            <option [ngValue]="null">Select new owner</option>
+            <option *ngFor="let member of projectMembers" [ngValue]="member.user.id" [disabled]="member.projectRole === 'OWNER'">
+              {{ member.user.name }}
+            </option>
+          </select>
+          <button class="btn btn-primary-indigo btn-sm px-3" (click)="transferOwnership()" [disabled]="!projectSettings.newOwnerId">
+            Transfer
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-2" *ngIf="isOwner()">
+        <button class="btn btn-link text-zinc-400 p-0 extra-small hover-text-danger text-decoration-none" (click)="deleteProject()">
+          Delete project workspace
+        </button>
+      </div>
+    </div>
+
+    <div modal-footer>
+      <button class="btn btn-light" (click)="showProjectSettingsModal = false">Cancel</button>
+      <button class="btn btn-primary-indigo" (click)="saveProjectSettings()" [disabled]="!projectSettings.name">
+        Save Settings
+      </button>
+    </div>
+  </app-modal>
 </div>
 
-<style>
-  /* Global Animations */
-  .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-  .animate-slide-up { animation: slideUp 0.6s ease-out; }
-
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { 
-    from { opacity: 0; transform: translateY(20px); } 
-    to { opacity: 1; transform: translateY(0); } 
-  }
-
-  /* Health Panel Styles */
-  .health-card {
-    padding: 1rem;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transition: transform 0.2s;
-  }
-  .health-card:hover { transform: translateY(-2px); }
-  .health-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; }
-  .health-value { font-size: 1.5rem; font-weight: 800; }
-  
-  .bg-light-indigo { background: #eef2ff; }
-  .text-indigo { color: #4f46e5; }
-  .bg-light-warning { background: #fffbeb; }
-  .bg-light-success { background: #f0fdf4; }
-  .bg-light-danger { background: #fef2f2; }
-  .bg-soft-danger { background: #fee2e2; }
-  .bg-soft-secondary { background: #f1f5f9; }
-
-  /* Wrapper Layout */
-  .kanban-wrapper {
-    background-color: #f8fafc;
-    min-height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    overflow-x: hidden;
-  }
-
-  .kanban-header-container {
-    z-index: 10;
-  }
-
-  /* Button Styles */
-  .btn-icon-back {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #64748b;
-    transition: all 0.2s;
-  }
-  .btn-icon-back:hover {
-    background: #f1f5f9;
-    color: #4f46e5;
-    border-color: #4f46e5;
-    transform: translateX(-2px);
-  }
-
-  .btn-primary-indigo {
-    background: #4f46e5;
-    border: none;
-    color: white;
-    transition: all 0.2s;
-  }
-  .btn-primary-indigo:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
-  }
-
-  .btn-success-modern {
-    background: #10b981;
-    border: none;
-    color: white;
-    transition: all 0.2s;
-  }
-  .btn-success-modern:hover {
-    background: #059669;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-  }
-
-  .btn-ai-sparkle {
-    background: white;
-    border: 1px solid #e2e8f0;
-    color: #4f46e5;
-    transition: all 0.2s;
-  }
-  .btn-ai-sparkle:hover {
-    background: #f5f3ff;
-    border-color: #c4b5fd;
-    color: #5b21b6;
-    transform: translateY(-1px);
-  }
-
-  .btn-outline-danger-modern {
-    background: transparent;
-    border: 1px solid #fee2e2;
-    color: #dc2626;
-    transition: all 0.2s;
-  }
-  .btn-outline-danger-modern:hover {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #991b1b;
-  }
-
-  .cursor-pointer {
-    cursor: pointer;
-  }
-
-  .avatar-circle {
-    width: 32px;
-    height: 32px;
-    background: #4f46e5;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 0.8rem;
-  }
-
-  .progress {
-    background-color: #e2e8f0;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    transition: width 0.6s ease;
-  }
-
-  .table-hover tbody tr:hover {
-    background-color: #f8fafc;
-  }
-
-  /* Methodology Badges */
-  .methodology-badge {
-    padding: 2px 10px;
-    border-radius: 50px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .methodology-badge.agile { background: #e0e7ff; color: #4338ca; }
-  .methodology-badge.scrum { background: #dcfce7; color: #166534; }
-  .methodology-badge.kanban { background: #fef9c3; color: #854d0e; }
-  .methodology-badge.waterfall { background: #fee2e2; color: #991b1b; }
-
-  /* View Switcher */
-  .view-switcher-modern {
-    border: 1px solid #e2e8f0;
-  }
-  .view-switcher-modern .btn {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #64748b;
-    border: none;
-  }
-  .view-switcher-modern .btn.active {
-    background: white;
-    color: #4f46e5;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-
-  /* Kanban Board Layout */
-  .kanban-board-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 0 1.5rem 1.5rem 1.5rem;
-  }
-  
-  .kanban-row {
-    display: flex;
-    gap: 1.25rem;
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-  }
-
-  .kanban-column-container {
-    flex: 1;
-    min-width: 300px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .kanban-column {
-    background: #f1f5f9;
-    border-radius: 24px;
-    padding: 1.25rem;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s ease;
-  }
-
-  .status-todo-col { border-top: 4px solid #94a3b8; }
-  .status-progress-col { border-top: 4px solid #4f46e5; }
-  .status-review-col { border-top: 4px solid #f59e0b; }
-  .status-completed-col { border-top: 4px solid #10b981; }
-
-  .column-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-  .status-dot.todo { background: #94a3b8; }
-  .status-dot.progress { background: #4f46e5; box-shadow: 0 0 8px rgba(79, 70, 229, 0.4); }
-  .status-dot.review { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
-  .status-dot.completed { background: #10b981; }
-
-  .letter-spacing-1 {
-    letter-spacing: 1px;
-  }
-
-  .count-badge {
-    background: white;
-    color: #475569;
-    padding: 2px 10px;
-    border-radius: 10px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    border: 1px solid #e2e8f0;
-  }
-
-  /* Task Card Improvements */
-  .kanban-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.25rem;
-  }
-
-  .task-card {
-    background: white;
-    border-radius: 16px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    border: 1px solid #e2e8f0;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    cursor: pointer;
-  }
-  .task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-  .card-priority-line { position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 16px 0 0 16px; }
-  .card-priority-line.high, .card-priority-line.critical { background: #ef4444; }
-  .card-priority-line.medium { background: #f59e0b; }
-  .card-priority-line.low { background: #10b981; }
-  
-  .card-content { padding: 1.25rem; }
-  .task-title { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; line-height: 1.4; }
-  .task-desc { font-size: 0.8rem; color: #64748b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1rem; }
-  
-  .priority-badge { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 50px; text-transform: uppercase; }
-  .priority-badge.high, .priority-badge.critical { background: #fee2e2; color: #991b1b; }
-  .priority-badge.medium { background: #fef3c7; color: #92400e; }
-  .priority-badge.low { background: #dcfce7; color: #166534; }
-
-  .meta-item { font-size: 0.7rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-  .sprint-tag { background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 6px; color: #64748b; }
-
-  .drag-lock-overlay { position: absolute; top: 10px; right: 10px; color: #cbd5e1; font-size: 0.8rem; }
-  .drag-disabled { cursor: default; opacity: 0.85; }
-
-  .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-  /* Sprint View */
-  .sprint-icon-circle { width: 48px; height: 48px; background: #4f46e5; color: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
-</style>

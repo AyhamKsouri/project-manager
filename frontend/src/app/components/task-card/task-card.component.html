@@ -1,0 +1,85 @@
+<div class="task-card" 
+     [class.is-overdue]="isOverdue"
+     [class.task-completed-card]="task.status === 'COMPLETED'"
+     [class.drag-disabled]="!canDrag"
+     (click)="onTaskClick()">
+  
+  <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
+  
+  <!-- Grip Icon -->
+  <div class="drag-handle" *ngIf="canDrag" aria-label="Drag to reorder" cdkDragHandle>
+    <i class="bi bi-grip-vertical" aria-hidden="true"></i>
+  </div>
+
+  <div class="card-content">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h6 class="task-title" 
+          [class.text-decoration-line-through]="task.status === 'COMPLETED'"
+          [class.text-muted]="task.status === 'COMPLETED'">
+        {{ task.title }}
+      </h6>
+      
+      <!-- Icon logic: Green check for completed, priority badge otherwise -->
+      <i class="bi bi-check-circle-fill text-success" *ngIf="task.status === 'COMPLETED'" aria-label="Task Completed"></i>
+      <span class="priority-badge" *ngIf="task.status !== 'COMPLETED'" [ngClass]="task.priority?.toLowerCase() || 'medium'">
+        <i class="bi" [ngClass]="{'bi-fire': task.priority === 'critical', 'bi-exclamation-triangle': task.priority === 'high'}" aria-hidden="true"></i>
+        {{ task.priority }}
+      </span>
+    </div>
+    
+    <!-- Tooltip for non-assignees -->
+    <div class="drag-lock-overlay" *ngIf="!canDrag" title="Only assignee can move this task">
+      <i class="bi bi-lock-fill" aria-hidden="true"></i>
+      <span class="visually-hidden">Only assignee can move this task</span>
+    </div>
+    
+    <p class="task-desc">{{ task.description }}</p>
+
+    <!-- AI Skill Match Chip -->
+    <div class="mb-2" *ngIf="task.assignmentReason">
+      <div class="ai-match-chip">
+        <i class="bi bi-stars"></i>
+        <span>{{ task.assignmentReason }}</span>
+      </div>
+    </div>
+    
+    <div class="task-metadata mb-3 d-flex flex-wrap gap-2" [class.opacity-50]="task.status === 'COMPLETED'">
+      <span class="meta-item" *ngIf="task.storyPoints">
+        <i class="bi bi-layers"></i> {{ task.storyPoints }}
+      </span>
+      <span class="meta-item" *ngIf="task.dueDate">
+        <i class="bi bi-calendar3"></i> {{ task.dueDate | date:'MMM d' }}
+      </span>
+      <span class="meta-item sprint-tag" *ngIf="task.sprintName">
+        <i class="bi bi-flag"></i> {{ task.sprintName }}
+      </span>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="risk-badge" *ngIf="task.priority === 'critical' && task.status !== 'COMPLETED'">
+        <i class="bi bi-exclamation-circle-fill text-danger small"></i>
+      </div>
+      <div class="assignee ms-auto" *ngIf="task.assignee">
+        <div class="avatar-circle" 
+             role="img"
+             [attr.aria-label]="'Assignee: ' + task.assignee.name"
+             [class.bg-light]="task.status === 'COMPLETED'" 
+             [class.text-muted]="task.status === 'COMPLETED'"
+             [class.border]="task.status === 'COMPLETED'"
+             [title]="task.assignee.name">
+          {{ task.assignee.name.charAt(0) }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Approve/Reject Actions (In Review Only) -->
+    <div class="approval-actions mt-3 pt-2 border-top d-flex gap-2" *ngIf="canApprove">
+      <button class="btn btn-sm btn-success-modern flex-grow-1 py-1 shadow-sm" (click)="onApprove($event)">
+        <i class="bi bi-check-lg me-1"></i> Approve
+      </button>
+      <button class="btn btn-sm btn-outline-danger-modern flex-grow-1 py-1 shadow-sm" (click)="onReject($event)">
+        <i class="bi bi-arrow-return-left me-1"></i> Reject
+      </button>
+    </div>
+  </div>
+</div>

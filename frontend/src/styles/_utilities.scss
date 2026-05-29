@@ -1,0 +1,80 @@
+/* Avatar Utilities */
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-indigo);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.avatar-circle-sm {
+  width: 24px;
+  height: 24px;
+  font-size: 0.7rem;
+}
+
+/* Button Utilities */
+.btn-primary-indigo {
+  background: var(--primary-indigo);
+  border: none;
+  color: white;
+  transition: all 0.2s;
+}
+
+.btn-primary-indigo:hover {
+  background: var(--primary-indigo-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.btn-success-modern {
+  background: var(--success-modern);
+  border: none;
+  color: white;
+  transition: all 0.2s;
+}
+
+.btn-success-modern:hover {
+  background: var(--success-modern-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+/* Badge Utilities */
+.priority-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 50px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.priority-badge.high, .priority-badge.critical { background: #fee2e2; color: #991b1b; }
+.priority-badge.medium { background: #fef3c7; color: #92400e; }
+.priority-badge.low { background: #dcfce7; color: #166534; }
+
+/* Scrollbar Utilities */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+/* Accessibility Utilities */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

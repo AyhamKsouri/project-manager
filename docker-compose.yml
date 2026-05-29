@@ -3,40 +3,76 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_DB: projectmanager
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-password}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/projectmanager
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/projectmanager}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-admin}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-password}
       - PM_APP_JWTSECRET=${JWT_SECRET}
-      - AI_SERVICE_URL=http://ai-service:8000
+      - AI_SERVICE_URL=http://ai-service:8001
     depends_on:
       - postgres
-      - ai-service
 
   ai-service:
-    build: ./ai-service
+    build:
+      context: ./ai-service
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - BACKEND_API_URL=http://backend:8080
+      - CHAT_RATE_LIMIT_PER_MINUTE=30
+    volumes:
+      - ./ai-service:/app
+    depends_on:
+      - backend
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: runtime
     ports:
-      - "80:80"
+      - "8081:8080"
+    environment:
+      - API_URL=/api
+      - WS_URL=/ws
+      - AI_SERVICE_URL=/ai-service
+      - NOTIFICATIONS_ENABLED=true
+    depends_on:
+      - backend
+
+  frontend-dev:
+    profiles:
+      - dev
+    build:
+      context: ./frontend
+      target: dev
+    ports:
+      - "4200:4200"
+    environment:
+      - API_URL=/api
+      - WS_URL=/ws
+      - AI_SERVICE_URL=/ai-service
+      - NOTIFICATIONS_ENABLED=true
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
     depends_on:
       - backend
 
 volumes:
   pgdata:
+  frontend_node_modules:

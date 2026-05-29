@@ -76,15 +76,15 @@ public class ProjectController {
         }
         
         try {
-            List<ProjectUser> memberships = projectUserRepository.findByUserId(currentUser.getUser().getId());
+            List<ProjectUser> memberships = projectUserRepository.findByUser_Id(currentUser.getUser().getId());
             
             List<Project> projects = memberships.stream()
                     .map(ProjectUser::getProject)
                     .filter(project -> project != null)
                     .peek(project -> {
                         try {
-                            project.setTaskCount(taskRepository.countByProjectId(project.getId()));
-                            project.setMemberCount(projectUserRepository.countByProjectId(project.getId()));
+                            project.setTaskCount(taskRepository.countByProject_Id(project.getId()));
+                            project.setMemberCount(projectUserRepository.countByProject_Id(project.getId()));
                         } catch (Exception e) {
                             project.setTaskCount(0L);
                             project.setMemberCount(0L);
@@ -103,8 +103,8 @@ public class ProjectController {
         projectAccessService.requireProjectMember(projectId, currentUser);
         return projectRepository.findById(projectId)
                 .map(project -> {
-                    project.setTaskCount(taskRepository.countByProjectId(project.getId()));
-                    project.setMemberCount(projectUserRepository.countByProjectId(project.getId()));
+                    project.setTaskCount(taskRepository.countByProject_Id(project.getId()));
+                    project.setMemberCount(projectUserRepository.countByProject_Id(project.getId()));
                     return ResponseEntity.ok(project);
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -113,7 +113,7 @@ public class ProjectController {
     @GetMapping("/{projectId}/members")
     public ResponseEntity<List<ProjectUser>> getProjectMembers(@PathVariable Long projectId, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         projectAccessService.requireProjectMember(projectId, currentUser);
-        List<ProjectUser> memberships = projectUserRepository.findByProjectId(projectId);
+        List<ProjectUser> memberships = projectUserRepository.findByProject_Id(projectId);
         return ResponseEntity.ok(memberships);
     }
 
@@ -137,8 +137,8 @@ public class ProjectController {
         projectAccessService.requireProjectManager(projectId, currentUser);
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
         String projectName = project.getName();
-        taskRepository.deleteByProjectId(projectId);
-        projectUserRepository.findByProjectId(projectId).forEach(projectUserRepository::delete);
+        taskRepository.deleteByProject_Id(projectId);
+        projectUserRepository.findByProject_Id(projectId).forEach(projectUserRepository::delete);
         projectRepository.deleteById(projectId);
         auditService.log("DELETE_PROJECT", "PROJECT", projectId.toString(), "User deleted project: " + projectName, currentUser.getUsername());
         return ResponseEntity.ok().build();
@@ -151,9 +151,9 @@ public class ProjectController {
         if (!projectAccessService.isGlobalAdmin(currentUser) && currentMembership.getProjectRole() != ProjectRole.OWNER) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only the owner can transfer ownership");
         }
-        ProjectUser newOwner = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        ProjectUser newOwner = projectUserRepository.findByProject_IdAndUser_Id(projectId, userId)
                 .orElseThrow(() -> new RuntimeException("New owner must be a project member"));
-        projectUserRepository.findByProjectId(projectId).forEach(member -> {
+        projectUserRepository.findByProject_Id(projectId).forEach(member -> {
             if (member.getProjectRole() == ProjectRole.OWNER) {
                 member.setProjectRole(ProjectRole.ADMIN);
                 projectUserRepository.save(member);
@@ -173,7 +173,7 @@ public class ProjectController {
         User userToAdd = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (projectUserRepository.findByProjectIdAndUserId(projectId, userToAdd.getId()).isPresent()) {
+        if (projectUserRepository.findByProject_IdAndUser_Id(projectId, userToAdd.getId()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is already a member");
         }
 
@@ -197,7 +197,7 @@ public class ProjectController {
     public ResponseEntity<?> updateMemberRole(@PathVariable Long projectId, @PathVariable Long userId, @RequestBody RoleUpdateRequest request, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         ProjectUser currentMembership = projectAccessService.requireProjectManager(projectId, currentUser);
 
-        ProjectUser memberToUpdate = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        ProjectUser memberToUpdate = projectUserRepository.findByProject_IdAndUser_Id(projectId, userId)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
 
         // Only owner can change another admin or owner
@@ -216,7 +216,7 @@ public class ProjectController {
     public ResponseEntity<?> removeMember(@PathVariable Long projectId, @PathVariable Long userId, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         projectAccessService.requireProjectManager(projectId, currentUser);
 
-        ProjectUser memberToRemove = projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+        ProjectUser memberToRemove = projectUserRepository.findByProject_IdAndUser_Id(projectId, userId)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
 
         if (memberToRemove.getProjectRole() == ProjectRole.OWNER) {

@@ -1,32 +1,32 @@
 <div class="my-tasks-page animate-fade-in">
   <div class="tasks-header mb-4 d-flex justify-content-between align-items-center">
     <div>
-      <p class="text-uppercase small fw-bold text-primary mb-2">Personal Workspace</p>
-      <h1 class="fw-bold text-dark mb-1">My Tasks</h1>
-      <p class="text-muted mb-0">Focus on assigned work across active projects, sorted by urgency and progress.</p>
+      <p class="text-uppercase small fw-bold text-primary mb-2">Espace de travail personnel</p>
+      <h1 class="fw-bold text-dark mb-1">Mes tâches</h1>
+      <p class="text-muted mb-0">Concentrez-vous sur le travail assigné à travers les projets actifs, trié par urgence et progression.</p>
     </div>
     <div class="view-toggle btn-group bg-white p-1 rounded-4 shadow-sm border">
-      <button class="btn btn-sm px-3 rounded-3" [class.btn-primary]="groupBy === 'status'" [class.btn-light]="groupBy !== 'status'" (click)="groupBy = 'status'">Status</button>
-      <button class="btn btn-sm px-3 rounded-3" [class.btn-primary]="groupBy === 'dueDate'" [class.btn-light]="groupBy !== 'dueDate'" (click)="groupBy = 'dueDate'">Due Date</button>
+      <button class="btn btn-sm px-3 rounded-3" [class.btn-primary]="groupBy === 'status'" [class.btn-light]="groupBy !== 'status'" (click)="groupBy = 'status'">Statut</button>
+      <button class="btn btn-sm px-3 rounded-3" [class.btn-primary]="groupBy === 'dueDate'" [class.btn-light]="groupBy !== 'dueDate'" (click)="groupBy = 'dueDate'">Date d'échéance</button>
     </div>
   </div>
 
   <div class="row g-3 mb-4">
     <div class="col-md-4">
       <div class="focus-metric shadow-sm">
-        <span>Open Work</span>
+        <span>Travail ouvert</span>
         <strong>{{ openTaskCount }}</strong>
       </div>
     </div>
     <div class="col-md-4">
       <div class="focus-metric urgent shadow-sm">
-        <span>High Priority</span>
+        <span>Priorité haute</span>
         <strong>{{ urgentTaskCount }}</strong>
       </div>
     </div>
     <div class="col-md-4">
       <div class="focus-metric shadow-sm">
-        <span>In Review</span>
+        <span>En révision</span>
         <strong>{{ reviewTaskCount }}</strong>
       </div>
     </div>
@@ -34,27 +34,27 @@
 
   <div class="filter-bar mb-4 p-3 bg-white border rounded-4 shadow-sm d-flex flex-wrap gap-3 align-items-center">
     <div class="d-flex align-items-center gap-2">
-      <label class="small fw-bold text-muted text-uppercase">Status</label>
+      <label class="small fw-bold text-muted text-uppercase">Statut</label>
       <select class="form-select form-select-sm border-0 bg-light rounded-3" [(ngModel)]="statusFilter">
-        <option value="ALL">All statuses</option>
-        <option value="TODO">To Do</option>
-        <option value="IN_PROGRESS">In Progress</option>
-        <option value="IN_REVIEW">In Review</option>
-        <option value="COMPLETED">Completed</option>
+        <option value="ALL">Tous les statuts</option>
+        <option value="TODO">À faire</option>
+        <option value="IN_PROGRESS">En cours</option>
+        <option value="IN_REVIEW">En révision</option>
+        <option value="COMPLETED">Terminé</option>
       </select>
     </div>
     <div class="d-flex align-items-center gap-2">
-      <label class="small fw-bold text-muted text-uppercase">Priority</label>
+      <label class="small fw-bold text-muted text-uppercase">Priorité</label>
       <select class="form-select form-select-sm border-0 bg-light rounded-3" [(ngModel)]="priorityFilter">
-        <option value="ALL">All priorities</option>
-        <option value="critical">Critical</option>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
+        <option value="ALL">Toutes les priorités</option>
+        <option value="critical">Critique</option>
+        <option value="high">Haute</option>
+        <option value="medium">Moyenne</option>
+        <option value="low">Basse</option>
       </select>
     </div>
     <button class="btn btn-sm btn-outline-secondary ms-auto rounded-pill px-3" (click)="loadTasks()">
-      <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+      <i class="bi bi-arrow-clockwise me-1"></i> Actualiser
     </button>
   </div>
 
@@ -74,12 +74,12 @@
                 </button>
                 <h5 class="fw-bold text-dark mb-0">{{ task.title }}</h5>
               </div>
-              <span class="priority-pill" [ngClass]="(task.priority || 'medium').toLowerCase()">{{ task.priority || 'Medium' }}</span>
+              <span class="priority-pill" [ngClass]="(task.priority || 'medium').toLowerCase()">{{ (task.priority || 'Medium') === 'High' ? 'Haute' : ((task.priority || 'Medium') === 'Medium' ? 'Moyenne' : ((task.priority || 'Medium') === 'Low' ? 'Basse' : (task.priority || 'Medium'))) }}</span>
             </div>
-            <p class="text-muted small mb-3 text-truncate-2">{{ task.description || 'No description provided.' }}</p>
+            <p class="text-muted small mb-3 text-truncate-2">{{ task.description || 'Aucune description fournie.' }}</p>
             <div class="d-flex flex-wrap gap-2 mb-3">
               <span class="meta-pill" [ngClass]="task.status.toLowerCase()">
-                <i class="bi bi-record-circle me-1"></i>{{ task.status.replace('_', ' ') }}
+                <i class="bi bi-record-circle me-1"></i>{{ task.status === 'TODO' ? 'À FAIRE' : (task.status === 'IN_PROGRESS' ? 'EN COURS' : (task.status === 'IN_REVIEW' ? 'EN RÉVISION' : 'TERMINÉ')) }}
               </span>
               <span class="meta-pill" *ngIf="task.storyPoints"><i class="bi bi-layers me-1"></i>{{ task.storyPoints }} pts</span>
               <span class="meta-pill" *ngIf="task.dueDate" [class.text-danger]="groupBy === 'dueDate' && group.title === 'Due Today'">
@@ -109,8 +109,8 @@
 
   <div class="empty-state text-center p-5 bg-white rounded-4 border shadow-sm animate-slide-up" *ngIf="groupedTasks.length === 0">
     <i class="bi bi-check2-circle display-3 text-success"></i>
-    <h4 class="fw-bold mt-3">Nothing needs your attention here</h4>
-    <p class="text-muted mb-0">Adjust filters or wait for a project owner to assign you work.</p>
+    <h4 class="fw-bold mt-3">Rien ne nécessite votre attention ici</h4>
+    <p class="text-muted mb-0">Ajustez les filtres ou attendez qu'un propriétaire de projet vous assigne du travail.</p>
   </div>
 
   <!-- Task Edit Modal -->
@@ -118,99 +118,28 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
         <div class="modal-header border-0 p-4 pb-0">
-          <h5 class="modal-title fw-bold">Update Task</h5>
+          <h5 class="modal-title fw-bold">Mettre à jour la tâche</h5>
           <button type="button" class="btn-close" (click)="showTaskModal = false"></button>
         </div>
         <div class="modal-body p-4">
           <div class="mb-3">
-            <label class="form-label small fw-bold text-muted text-uppercase">Title</label>
+            <label class="form-label small fw-bold text-muted text-uppercase">Titre</label>
             <input type="text" class="form-control rounded-3" [(ngModel)]="selectedTask.title">
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold text-muted text-uppercase">Notes / Description</label>
-            <textarea class="form-control rounded-3" rows="5" [(ngModel)]="selectedTask.description" placeholder="Update your progress notes here..."></textarea>
+            <textarea class="form-control rounded-3" rows="5" [(ngModel)]="selectedTask.description" placeholder="Mettez à jour vos notes de progression ici..."></textarea>
           </div>
           <div class="alert alert-info border-0 rounded-3 small">
-            <i class="bi bi-info-circle me-2"></i> Only description and title can be updated here. To change status or assignee, use the main board actions.
+            <i class="bi bi-info-circle me-2"></i> Seuls la description et le titre peuvent être mis à jour ici. Pour changer le statut ou l'assigné, utilisez les actions du tableau principal.
           </div>
         </div>
         <div class="modal-footer border-0 p-4 pt-0">
-          <button type="button" class="btn btn-light rounded-pill px-4" (click)="showTaskModal = false">Cancel</button>
-          <button type="button" class="btn btn-primary-indigo rounded-pill px-4 fw-bold" (click)="updateTaskDetails()">Save Changes</button>
+          <button type="button" class="btn btn-light rounded-pill px-4" (click)="showTaskModal = false">Annuler</button>
+          <button type="button" class="btn btn-primary-indigo rounded-pill px-4 fw-bold" (click)="updateTaskDetails()">Enregistrer les modifications</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<style>
-  .focus-metric {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    padding: 1.5rem;
-    transition: transform 0.2s;
-  }
-  .focus-metric:hover { transform: translateY(-3px); }
-  .focus-metric.urgent { border-left: 5px solid #ef4444; }
-  .focus-metric span { color: #64748b; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-  .focus-metric strong { font-size: 2rem; color: #0f172a; display: block; }
-
-  .group-dot { width: 10px; height: 10px; background: #4f46e5; border-radius: 50%; display: inline-block; }
-  
-  .task-focus-card {
-    background: white;
-    border-radius: 20px;
-    padding: 1.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    display: flex;
-    flex-direction: column;
-  }
-  .task-focus-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1) !important; }
-  
-  .text-truncate-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .btn-primary-indigo {
-    background: #4f46e5;
-    border: none;
-    color: white;
-  }
-  .btn-primary-indigo:hover { background: #4338ca; }
-
-  .meta-pill {
-    background: #f8fafc;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 4px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-  .meta-pill.todo { border-left: 3px solid #94a3b8; }
-  .meta-pill.in_progress { border-left: 3px solid #4f46e5; }
-  .meta-pill.in_review { border-left: 3px solid #f59e0b; }
-  .meta-pill.completed { border-left: 3px solid #10b981; }
-
-  .priority-pill { border-radius: 8px; font-size: 0.7rem; font-weight: 800; padding: 4px 10px; text-transform: uppercase; }
-  .priority-pill.critical { background: #fee2e2; color: #991b1b; }
-  .priority-pill.high { background: #fee2e2; color: #dc2626; }
-  .priority-pill.medium { background: #fef3c7; color: #92400e; }
-  .priority-pill.low { background: #dcfce7; color: #166534; }
-
-  .project-link {
-    color: #4f46e5;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-</style>

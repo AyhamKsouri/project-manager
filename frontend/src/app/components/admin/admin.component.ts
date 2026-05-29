@@ -8,7 +8,8 @@ import { ConfirmService } from '../../services/confirm.service';
 
 @Component({
   selector: 'app-admin',
-  templateUrl: './admin.component.html'
+  templateUrl: './admin.component.html',
+  styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit {
   summary: any = { 
@@ -54,7 +55,7 @@ export class AdminComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.isAdmin()) {
-      this.toastService.error('Admin access required');
+      this.toastService.error('Accès administrateur requis');
       this.router.navigate(['/dashboard']);
       return;
     }
@@ -152,7 +153,7 @@ export class AdminComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.toastService.error('Failed to load system data');
+        this.toastService.error('Échec du chargement des données système');
         this.loading = false;
       }
     });
@@ -223,18 +224,18 @@ export class AdminComponent implements OnInit {
   bulkDeleteUsers(): void {
     if (this.selectedUserIds.size === 0) return;
     this.confirmService.confirm({
-      title: 'Bulk Delete Users',
-      message: `Are you sure you want to delete ${this.selectedUserIds.size} users?`,
+      title: 'Suppression groupée d\'utilisateurs',
+      message: `Êtes-vous sûr de vouloir supprimer ${this.selectedUserIds.size} utilisateurs ?`,
       type: 'danger'
     }).then(ok => {
       if (!ok) return;
       this.adminService.bulkDeleteUsers(Array.from(this.selectedUserIds)).subscribe({
         next: () => {
-          this.toastService.success('Users deleted');
+          this.toastService.success('Utilisateurs supprimés');
           this.selectedUserIds.clear();
           this.loadAll();
         },
-        error: err => this.toastService.error(err.error?.error || 'Could not delete users')
+        error: err => this.toastService.error(err.error?.error || 'Impossible de supprimer les utilisateurs')
       });
     });
   }
@@ -242,18 +243,18 @@ export class AdminComponent implements OnInit {
   bulkDeleteProjects(): void {
     if (this.selectedProjectIds.size === 0) return;
     this.confirmService.confirm({
-      title: 'Bulk Delete Projects',
-      message: `Are you sure you want to delete ${this.selectedProjectIds.size} projects?`,
+      title: 'Suppression groupée de projets',
+      message: `Êtes-vous sûr de vouloir supprimer ${this.selectedProjectIds.size} projets ?`,
       type: 'danger'
     }).then(ok => {
       if (!ok) return;
       this.adminService.bulkDeleteProjects(Array.from(this.selectedProjectIds)).subscribe({
         next: () => {
-          this.toastService.success('Projects deleted');
+          this.toastService.success('Projets supprimés');
           this.selectedProjectIds.clear();
           this.loadAll();
         },
-        error: err => this.toastService.error(err.error?.error || 'Could not delete projects')
+        error: err => this.toastService.error(err.error?.error || 'Impossible de supprimer les projets')
       });
     });
   }
@@ -261,18 +262,18 @@ export class AdminComponent implements OnInit {
   bulkDeleteTasks(): void {
     if (this.selectedTaskIds.size === 0) return;
     this.confirmService.confirm({
-      title: 'Bulk Delete Tasks',
-      message: `Are you sure you want to delete ${this.selectedTaskIds.size} tasks?`,
+      title: 'Suppression groupée de tâches',
+      message: `Êtes-vous sûr de vouloir supprimer ${this.selectedTaskIds.size} tâches ?`,
       type: 'danger'
     }).then(ok => {
       if (!ok) return;
       this.adminService.bulkDeleteTasks(Array.from(this.selectedTaskIds)).subscribe({
         next: () => {
-          this.toastService.success('Tasks deleted');
+          this.toastService.success('Tâches supprimées');
           this.selectedTaskIds.clear();
           this.loadAll();
         },
-        error: err => this.toastService.error(err.error?.error || 'Could not delete tasks')
+        error: err => this.toastService.error(err.error?.error || 'Impossible de supprimer les tâches')
       });
     });
   }
@@ -284,12 +285,12 @@ export class AdminComponent implements OnInit {
 
     action.subscribe({
       next: () => {
-        this.toastService.success(this.editingUserId ? 'User updated' : 'User created');
+        this.toastService.success(this.editingUserId ? 'Utilisateur mis à jour' : 'Utilisateur créé');
         this.resetUserForm();
         this.loadUsers();
         this.adminService.getSummary().subscribe({ next: res => this.summary = res });
       },
-      error: err => this.toastService.error(err.error?.error || 'Could not save user')
+      error: err => this.toastService.error(err.error?.error || 'Impossible d\'enregistrer l\'utilisateur')
     });
   }
 
@@ -300,20 +301,20 @@ export class AdminComponent implements OnInit {
 
   deleteUser(user: any): void {
     this.confirmService.confirm({
-      title: 'Delete User',
-      message: `Delete ${user.email}? Their task assignments and memberships will be removed.`,
-      confirmText: 'Delete',
+      title: 'Supprimer l\'utilisateur',
+      message: `Supprimer ${user.email} ? Ses assignations de tâches et ses adhésions seront supprimées.`,
+      confirmText: 'Supprimer',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
       this.adminService.deleteUser(user.id).subscribe({
         next: () => {
-          this.toastService.success('User deleted');
+          this.toastService.success('Utilisateur supprimé');
           this.loadUsers();
           this.loadProjects();
           this.loadTasks();
         },
-        error: err => this.toastService.error(err.error?.error || 'Could not delete user')
+        error: err => this.toastService.error(err.error?.error || 'Impossible de supprimer l\'utilisateur')
       });
     });
   }
@@ -325,12 +326,12 @@ export class AdminComponent implements OnInit {
 
     action.subscribe({
       next: () => {
-        this.toastService.success(this.editingProjectId ? 'Project updated' : 'Project created');
+        this.toastService.success(this.editingProjectId ? 'Projet mis à jour' : 'Projet créé');
         this.resetProjectForm();
         this.loadProjects();
         this.adminService.getSummary().subscribe({ next: res => this.summary = res });
       },
-      error: err => this.toastService.error(err.error?.error || 'Could not save project')
+      error: err => this.toastService.error(err.error?.error || 'Impossible d\'enregistrer le projet')
     });
   }
 
@@ -346,37 +347,37 @@ export class AdminComponent implements OnInit {
 
   deleteProject(project: any): void {
     this.confirmService.confirm({
-      title: 'Delete Project',
-      message: `Delete project "${project.name}" and its tasks?`,
-      confirmText: 'Delete',
+      title: 'Supprimer le projet',
+      message: `Supprimer le projet "${project.name}" et ses tâches ?`,
+      confirmText: 'Supprimer',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
       this.adminService.deleteProject(project.id).subscribe({
         next: () => {
-          this.toastService.success('Project deleted');
+          this.toastService.success('Projet supprimé');
           this.loadProjects();
           this.loadTasks();
         },
-        error: err => this.toastService.error(err.error?.error || 'Could not delete project')
+        error: err => this.toastService.error(err.error?.error || 'Impossible de supprimer le projet')
       });
     });
   }
 
   deleteTask(task: any): void {
     this.confirmService.confirm({
-      title: 'Delete Task',
-      message: `Delete task "${task.title}"?`,
-      confirmText: 'Delete',
+      title: 'Supprimer la tâche',
+      message: `Supprimer la tâche "${task.title}" ?`,
+      confirmText: 'Supprimer',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
       this.adminService.deleteTask(task.id).subscribe({
         next: () => {
-          this.toastService.success('Task deleted');
+          this.toastService.success('Tâche supprimée');
           this.loadTasks();
         },
-        error: err => this.toastService.error(err.error?.error || 'Could not delete task')
+        error: err => this.toastService.error(err.error?.error || 'Impossible de supprimer la tâche')
       });
     });
   }

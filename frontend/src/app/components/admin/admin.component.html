@@ -1,13 +1,13 @@
 <div class="admin-page animate-fade-in">
   <div class="admin-hero mb-4 d-flex justify-content-between align-items-center">
     <div>
-      <p class="text-uppercase small fw-bold text-primary mb-2">Admin Control Center</p>
-      <h1 class="fw-bold text-dark mb-1">System Management</h1>
-      <p class="text-muted mb-0">Manage users, projects, and operational cleanup from one place.</p>
+      <p class="text-uppercase small fw-bold text-primary mb-2">Centre de contrôle administrateur</p>
+      <h1 class="fw-bold text-dark mb-1">Gestion du système</h1>
+      <p class="text-muted mb-0">Gérez les utilisateurs, les projets et le nettoyage opérationnel à partir d'un seul endroit.</p>
     </div>
     <div class="system-health text-end">
       <span class="badge rounded-pill px-3 py-2" [class.bg-success]="summary.systemHealth === 'Healthy'" [class.bg-warning]="summary.systemHealth !== 'Healthy'">
-        <i class="bi bi-heart-pulse-fill me-1"></i> System Health: {{ summary.systemHealth }}
+        <i class="bi bi-heart-pulse-fill me-1"></i> Santé du système : {{ summary.systemHealth === 'Healthy' ? 'Sain' : summary.systemHealth }}
       </span>
     </div>
   </div>
@@ -18,9 +18,9 @@
       <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center mb-0">
         <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
         <div>
-          <span class="fw-bold">Action Required:</span> 
-          <span *ngIf="summary.projectsWithoutOwner > 0" class="me-2">{{ summary.projectsWithoutOwner }} projects need owners.</span>
-          <span *ngIf="summary.unassignedTasks > 0">{{ summary.unassignedTasks }} tasks are unassigned.</span>
+          <span class="fw-bold">Action requise :</span> 
+          <span *ngIf="summary.projectsWithoutOwner > 0" class="me-2">{{ summary.projectsWithoutOwner }} projets ont besoin de propriétaires.</span>
+          <span *ngIf="summary.unassignedTasks > 0">{{ summary.unassignedTasks }} tâches ne sont pas assignées.</span>
         </div>
       </div>
     </div>
@@ -29,30 +29,30 @@
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="metric-card insight-clickable" [class.active]="showIdleUsersOnly" (click)="filterIdleUsers()">
-        <span class="metric-label">Idle Users</span>
+        <span class="metric-label">Utilisateurs inactifs</span>
         <strong>{{ summary.idleUsers }}</strong>
-        <span class="extra-small text-muted mt-1">No project assignments</span>
+        <span class="extra-small text-muted mt-1">Aucune assignation de projet</span>
       </div>
     </div>
     <div class="col-md-3">
       <div class="metric-card insight-clickable" [class.active]="showProjectsWithoutOwnerOnly" (click)="filterProjectsWithoutOwner()">
-        <span class="metric-label">Ownerless Projects</span>
+        <span class="metric-label">Projets sans propriétaire</span>
         <strong>{{ summary.projectsWithoutOwner }}</strong>
-        <span class="extra-small text-muted mt-1">Needs ownership</span>
+        <span class="extra-small text-muted mt-1">Nécessite un propriétaire</span>
       </div>
     </div>
     <div class="col-md-3">
       <div class="metric-card insight-clickable" [class.active]="showUnassignedTasksOnly" (click)="filterUnassignedTasks()">
-        <span class="metric-label">Unassigned Tasks</span>
+        <span class="metric-label">Tâches non assignées</span>
         <strong>{{ summary.unassignedTasks }}</strong>
-        <span class="extra-small text-muted mt-1">Waiting for assignee</span>
+        <span class="extra-small text-muted mt-1">En attente d'assignation</span>
       </div>
     </div>
     <div class="col-md-3">
       <div class="metric-card insight-clickable danger" [class.active]="showHighPriorityTasksOnly" (click)="filterHighPriorityTasks()">
-        <span class="metric-label text-danger">Risky Tasks</span>
+        <span class="metric-label text-danger">Tâches risquées</span>
         <strong class="text-danger">{{ summary.highPriorityTasks }}</strong>
-        <span class="extra-small text-muted mt-1">High/Critical priority</span>
+        <span class="extra-small text-muted mt-1">Priorité haute/critique</span>
       </div>
     </div>
   </div>
@@ -60,49 +60,49 @@
   <div class="admin-tabs mb-4 d-flex justify-content-between align-items-center">
     <div class="btn-group p-1 bg-white border rounded-4 shadow-sm">
       <button class="btn border-0 rounded-3 px-3" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'; clearInsightFilters()">
-        <i class="bi bi-people me-1"></i> Users
+        <i class="bi bi-people me-1"></i> Utilisateurs
       </button>
       <button class="btn border-0 rounded-3 px-3" [class.active]="activeTab === 'projects'" (click)="activeTab = 'projects'; clearInsightFilters()">
-        <i class="bi bi-folder2-open me-1"></i> Projects
+        <i class="bi bi-folder2-open me-1"></i> Projets
       </button>
       <button class="btn border-0 rounded-3 px-3" [class.active]="activeTab === 'tasks'" (click)="activeTab = 'tasks'; clearInsightFilters()">
-        <i class="bi bi-check2-square me-1"></i> Tasks
+        <i class="bi bi-check2-square me-1"></i> Tâches
       </button>
       <button class="btn border-0 rounded-3 px-3" [class.active]="activeTab === 'logs'" (click)="activeTab = 'logs'; clearInsightFilters()">
-        <i class="bi bi-journal-text me-1"></i> Audit Logs
+        <i class="bi bi-journal-text me-1"></i> Journaux d'audit
       </button>
     </div>
     <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" (click)="loadAll()" [disabled]="loading">
-      <i class="bi bi-arrow-clockwise me-1" [class.spin]="loading"></i> Refresh
+      <i class="bi bi-arrow-clockwise me-1" [class.spin]="loading"></i> Actualiser
     </button>
   </div>
 
   <div *ngIf="loading" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+      <span class="visually-hidden">Chargement...</span>
     </div>
-    <p class="mt-2 text-muted">Loading system data...</p>
+    <p class="mt-2 text-muted">Chargement des données système...</p>
   </div>
 
   <!-- Users Tab -->
   <div *ngIf="!loading && activeTab === 'users'" class="row g-4 animate-slide-up">
     <div class="col-lg-4">
       <div class="admin-panel shadow-sm">
-        <h5 class="fw-bold mb-3">{{ editingUserId ? 'Edit User' : 'Create User' }}</h5>
+        <h5 class="fw-bold mb-3">{{ editingUserId ? 'Modifier l\'utilisateur' : 'Créer un utilisateur' }}</h5>
         <form (ngSubmit)="saveUser()">
-          <input class="form-control mb-3" name="userName" [(ngModel)]="userForm.name" placeholder="Name" required>
+          <input class="form-control mb-3" name="userName" [(ngModel)]="userForm.name" placeholder="Nom" required>
           <input class="form-control mb-3" name="userEmail" [(ngModel)]="userForm.email" placeholder="Email" required>
-          <input class="form-control mb-3" name="userPassword" [(ngModel)]="userForm.password" placeholder="Password" [required]="!editingUserId">
-          <textarea class="form-control mb-3" name="userSkills" [(ngModel)]="userForm.skills" placeholder="Skills, separated by commas"></textarea>
+          <input class="form-control mb-3" name="userPassword" [(ngModel)]="userForm.password" placeholder="Mot de passe" [required]="!editingUserId">
+          <textarea class="form-control mb-3" name="userSkills" [(ngModel)]="userForm.skills" placeholder="Compétences, séparées par des virgules"></textarea>
           <select class="form-select mb-3" name="userRole" [(ngModel)]="userForm.globalRole">
-            <option value="USER">USER</option>
+            <option value="USER">UTILISATEUR</option>
             <option value="ADMIN">ADMIN</option>
           </select>
           <div class="d-flex gap-2">
             <button class="btn btn-primary flex-grow-1 rounded-3" type="submit">
-              {{ editingUserId ? 'Save User' : 'Create User' }}
+              {{ editingUserId ? 'Enregistrer l\'utilisateur' : 'Créer un utilisateur' }}
             </button>
-            <button class="btn btn-light rounded-3" type="button" (click)="resetUserForm()" *ngIf="editingUserId">Cancel</button>
+            <button class="btn btn-light rounded-3" type="button" (click)="resetUserForm()" *ngIf="editingUserId">Annuler</button>
           </div>
         </form>
       </div>
@@ -110,10 +110,10 @@
     <div class="col-lg-8">
       <div class="admin-panel shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <input type="text" class="form-control w-50" placeholder="Search users by name, email, skills..." [(ngModel)]="userSearch">
+          <input type="text" class="form-control w-50" placeholder="Rechercher des utilisateurs par nom, email, compétences..." [(ngModel)]="userSearch">
           <div class="bulk-actions" *ngIf="selectedUserIds.size > 0">
-            <span class="text-muted small me-2">{{ selectedUserIds.size }} selected</span>
-            <button class="btn btn-sm btn-danger rounded-pill px-3" (click)="bulkDeleteUsers()">Delete Selected</button>
+            <span class="text-muted small me-2">{{ selectedUserIds.size }} sélectionné(s)</span>
+            <button class="btn btn-sm btn-danger rounded-pill px-3" (click)="bulkDeleteUsers()">Supprimer la sélection</button>
           </div>
         </div>
         <div class="table-responsive">
@@ -121,10 +121,10 @@
             <thead>
               <tr>
                 <th style="width: 40px"></th>
-                <th>User</th>
-                <th>Role</th>
-                <th>Projects</th>
-                <th>Tasks</th>
+                <th>Utilisateur</th>
+                <th>Rôle</th>
+                <th>Projets</th>
+                <th>Tâches</th>
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
@@ -136,12 +136,12 @@
                 <td>
                   <div class="fw-bold d-flex align-items-center">
                     {{ user.name }}
-                    <span class="ms-2 badge bg-info extra-small" *ngIf="user.projectCount === 0">Idle</span>
+                    <span class="ms-2 badge bg-info extra-small" *ngIf="user.projectCount === 0">Inactif</span>
                   </div>
                   <div class="text-muted small">{{ user.email }}</div>
                   <div class="extra-small text-muted" *ngIf="user.skills"><i class="bi bi-tag me-1"></i>{{ user.skills }}</div>
                 </td>
-                <td><span class="badge rounded-pill px-3" [ngClass]="user.globalRole === 'ADMIN' ? 'bg-danger' : 'bg-secondary'">{{ user.globalRole }}</span></td>
+                <td><span class="badge rounded-pill px-3" [ngClass]="user.globalRole === 'ADMIN' ? 'bg-danger' : 'bg-secondary'">{{ user.globalRole === 'ADMIN' ? 'ADMIN' : (user.globalRole === 'USER' ? 'UTILISATEUR' : user.globalRole) }}</span></td>
                 <td>{{ user.projectCount }}</td>
                 <td>{{ user.assignedTaskCount }}</td>
                 <td class="text-end">
@@ -150,7 +150,7 @@
                 </td>
               </tr>
               <tr *ngIf="filteredUsers.length === 0">
-                <td colspan="6" class="text-center py-4 text-muted">No users found matching your search.</td>
+                <td colspan="6" class="text-center py-4 text-muted">Aucun utilisateur trouvé correspondant à votre recherche.</td>
               </tr>
             </tbody>
           </table>
@@ -163,9 +163,9 @@
   <div *ngIf="!loading && activeTab === 'projects'" class="row g-4 animate-slide-up">
     <div class="col-lg-4">
       <div class="admin-panel shadow-sm">
-        <h5 class="fw-bold mb-3">{{ editingProjectId ? 'Edit Project' : 'Create Project' }}</h5>
+        <h5 class="fw-bold mb-3">{{ editingProjectId ? 'Modifier le projet' : 'Créer un projet' }}</h5>
         <form (ngSubmit)="saveProject()">
-          <input class="form-control mb-3" name="projectName" [(ngModel)]="projectForm.name" placeholder="Project name" required>
+          <input class="form-control mb-3" name="projectName" [(ngModel)]="projectForm.name" placeholder="Nom du projet" required>
           <textarea class="form-control mb-3" name="projectDescription" [(ngModel)]="projectForm.description" placeholder="Description"></textarea>
           <select class="form-select mb-3" name="projectMethodology" [(ngModel)]="projectForm.methodology">
             <option value="Agile">Agile</option>
@@ -174,14 +174,14 @@
             <option value="Waterfall">Waterfall</option>
           </select>
           <select class="form-select mb-3" name="projectOwner" [(ngModel)]="projectForm.ownerId" *ngIf="!editingProjectId">
-            <option [ngValue]="null">No owner yet</option>
+            <option [ngValue]="null">Pas encore de propriétaire</option>
             <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }} - {{ user.email }}</option>
           </select>
           <div class="d-flex gap-2">
             <button class="btn btn-primary flex-grow-1 rounded-3" type="submit">
-              {{ editingProjectId ? 'Save Project' : 'Create Project' }}
+              {{ editingProjectId ? 'Enregistrer le projet' : 'Créer un projet' }}
             </button>
-            <button class="btn btn-light rounded-3" type="button" (click)="resetProjectForm()" *ngIf="editingProjectId">Cancel</button>
+            <button class="btn btn-light rounded-3" type="button" (click)="resetProjectForm()" *ngIf="editingProjectId">Annuler</button>
           </div>
         </form>
       </div>
@@ -189,10 +189,10 @@
     <div class="col-lg-8">
       <div class="admin-panel shadow-sm">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <input type="text" class="form-control w-50" placeholder="Search projects..." [(ngModel)]="projectSearch">
+          <input type="text" class="form-control w-50" placeholder="Rechercher des projets..." [(ngModel)]="projectSearch">
           <div class="bulk-actions" *ngIf="selectedProjectIds.size > 0">
-            <span class="text-muted small me-2">{{ selectedProjectIds.size }} selected</span>
-            <button class="btn btn-sm btn-danger rounded-pill px-3" (click)="bulkDeleteProjects()">Delete Selected</button>
+            <span class="text-muted small me-2">{{ selectedProjectIds.size }} sélectionné(s)</span>
+            <button class="btn btn-sm btn-danger rounded-pill px-3" (click)="bulkDeleteProjects()">Supprimer la sélection</button>
           </div>
         </div>
         <div class="table-responsive">
@@ -200,10 +200,10 @@
             <thead>
               <tr>
                 <th style="width: 40px"></th>
-                <th>Project</th>
-                <th>Owner</th>
-                <th>Tasks</th>
-                <th>Members</th>
+                <th>Projet</th>
+                <th>Propriétaire</th>
+                <th>Tâches</th>
+                <th>Membres</th>
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
@@ -215,11 +215,11 @@
                 <td>
                   <div class="fw-bold d-flex align-items-center">
                     {{ project.name }}
-                    <span class="ms-2 badge bg-warning text-dark extra-small" *ngIf="!project.owner">No Owner</span>
+                    <span class="ms-2 badge bg-warning text-dark extra-small" *ngIf="!project.owner">Sans propriétaire</span>
                   </div>
                   <div class="text-muted small">{{ project.methodology }}</div>
                 </td>
-                <td>{{ project.owner?.name || 'No owner' }}</td>
+                <td>{{ project.owner?.name || 'Sans propriétaire' }}</td>
                 <td>{{ project.taskCount }}</td>
                 <td>{{ project.memberCount }}</td>
                 <td class="text-end">
@@ -228,7 +228,7 @@
                 </td>
               </tr>
               <tr *ngIf="filteredProjects.length === 0">
-                <td colspan="6" class="text-center py-4 text-muted">No projects found matching your search.</td>
+                <td colspan="6" class="text-center py-4 text-muted">Aucun projet trouvé correspondant à votre recherche.</td>
               </tr>
             </tbody>
           </table>
@@ -241,18 +241,18 @@
   <div *ngIf="!loading && activeTab === 'tasks'" class="admin-panel shadow-sm animate-slide-up">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="d-flex gap-2 w-50">
-        <input type="text" class="form-control" placeholder="Search tasks by title, project, assignee..." [(ngModel)]="taskSearch">
+        <input type="text" class="form-control" placeholder="Rechercher des tâches par titre, projet, assigné..." [(ngModel)]="taskSearch">
         <select class="form-select w-auto" [(ngModel)]="taskStatusFilter">
-          <option value="ALL">All Status</option>
-          <option value="TODO">To Do</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="IN_REVIEW">Needs Review</option>
-          <option value="COMPLETED">Completed</option>
+          <option value="ALL">Tous les statuts</option>
+          <option value="TODO">À faire</option>
+          <option value="IN_PROGRESS">En cours</option>
+          <option value="IN_REVIEW">À réviser</option>
+          <option value="COMPLETED">Terminé</option>
         </select>
       </div>
       <div class="bulk-actions" *ngIf="selectedTaskIds.size > 0">
-        <span class="text-muted small me-2">{{ selectedTaskIds.size }} selected</span>
-        <button class="btn btn-sm btn-danger rounded-pill px-3" (click)="bulkDeleteTasks()">Delete Selected</button>
+        <span class="text-muted small me-2">{{ selectedTaskIds.size }} sélectionné(s)</span>
+        <button class="btn btn-sm btn-danger rounded-pill px-3" (click)="bulkDeleteTasks()">Supprimer la sélection</button>
       </div>
     </div>
     <div class="table-responsive">
@@ -260,11 +260,11 @@
         <thead>
           <tr>
             <th style="width: 40px"></th>
-            <th>Task</th>
-            <th>Project</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Assignee</th>
+            <th>Tâche</th>
+            <th>Projet</th>
+            <th>Statut</th>
+            <th>Priorité</th>
+            <th>Assigné</th>
             <th class="text-end">Actions</th>
           </tr>
         </thead>
@@ -276,27 +276,27 @@
             <td>
               <div class="fw-bold d-flex align-items-center">
                 {{ task.title }}
-                <span class="ms-2 badge bg-warning text-dark extra-small" *ngIf="!task.assignee">Unassigned</span>
+                <span class="ms-2 badge bg-warning text-dark extra-small" *ngIf="!task.assignee">Non assigné</span>
               </div>
-              <div class="text-muted small text-truncate" style="max-width: 250px;">{{ task.description || 'No description' }}</div>
+              <div class="text-muted small text-truncate" style="max-width: 250px;">{{ task.description || 'Aucune description' }}</div>
             </td>
             <td>
-              <span class="small fw-bold text-primary">{{ task.projectName || 'Unknown' }}</span>
+              <span class="small fw-bold text-primary">{{ task.projectName || 'Inconnu' }}</span>
             </td>
             <td>
               <span class="badge extra-small rounded-pill px-2 py-1" 
                     [ngClass]="{'bg-secondary': task.status === 'TODO', 'bg-primary': task.status === 'IN_PROGRESS', 'bg-warning text-dark': task.status === 'IN_REVIEW', 'bg-success': task.status === 'COMPLETED'}">
-                {{ task.status.replace('_', ' ') }}
+                {{ task.status === 'TODO' ? 'À FAIRE' : (task.status === 'IN_PROGRESS' ? 'EN COURS' : (task.status === 'IN_REVIEW' ? 'EN RÉVISION' : 'TERMINÉ')) }}
               </span>
             </td>
-            <td><span class="badge bg-light text-dark border px-3">{{ task.priority || 'Medium' }}</span></td>
-            <td>{{ task.assignee?.name || 'Unassigned' }}</td>
+            <td><span class="badge bg-light text-dark border px-3">{{ task.priority === 'High' ? 'Haute' : (task.priority === 'Medium' ? 'Moyenne' : (task.priority === 'Low' ? 'Basse' : (task.priority === 'Critical' ? 'Critique' : (task.priority || 'Moyenne')))) }}</span></td>
+            <td>{{ task.assignee?.name || 'Non assigné' }}</td>
             <td class="text-end">
               <button class="btn btn-sm btn-outline-danger rounded-circle" (click)="deleteTask(task)"><i class="bi bi-trash"></i></button>
             </td>
           </tr>
           <tr *ngIf="filteredTasks.length === 0">
-            <td colspan="7" class="text-center py-4 text-muted">No tasks found matching your search.</td>
+            <td colspan="7" class="text-center py-4 text-muted">Aucune tâche trouvée correspondant à votre recherche.</td>
           </tr>
         </tbody>
       </table>
@@ -306,8 +306,8 @@
   <!-- Logs Tab -->
   <div *ngIf="!loading && activeTab === 'logs'" class="admin-panel shadow-sm animate-slide-up">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h5 class="fw-bold mb-0">Audit & History Log</h5>
-      <span class="text-muted small">Tracking system changes for accountability.</span>
+      <h5 class="fw-bold mb-0">Journal d'audit et d'historique</h5>
+      <span class="text-muted small">Suivi des modifications du système pour la responsabilité.</span>
     </div>
     <div class="log-timeline" style="max-height: 600px; overflow-y: auto;">
       <div class="log-item p-3 mb-2 border-start border-4 rounded-3 bg-light shadow-sm d-flex justify-content-between align-items-center" 
@@ -326,101 +326,19 @@
             <span class="fw-bold text-dark small">{{ log.details }}</span>
           </div>
           <div class="extra-small text-muted">
-            <i class="bi bi-person-circle me-1"></i> Performed by: {{ log.performedByEmail }}
+            <i class="bi bi-person-circle me-1"></i> Effectué par : {{ log.performedByEmail }}
           </div>
         </div>
         <div class="text-end">
           <div class="fw-medium small text-dark">{{ log.timestamp | date:'MMM d, HH:mm' }}</div>
-          <div class="extra-small text-muted">{{ log.entityType }} ID: {{ log.entityId }}</div>
+          <div class="extra-small text-muted">{{ log.entityType }} ID : {{ log.entityId }}</div>
         </div>
       </div>
       <div *ngIf="logs.length === 0" class="text-center py-5 text-muted">
         <i class="bi bi-journal-x display-4 mb-3"></i>
-        <p>No audit logs found.</p>
+        <p>Aucun journal d'audit trouvé.</p>
       </div>
     </div>
   </div>
 </div>
 
-<style>
-  .admin-hero {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    padding: 1.75rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  }
-  .metric-card, .admin-panel {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    padding: 1.5rem;
-    transition: all 0.2s;
-  }
-  .metric-label {
-    display: block;
-    color: #64748b;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .metric-card strong {
-    font-size: 2.25rem;
-    color: #0f172a;
-    display: block;
-  }
-  .insight-clickable {
-    cursor: pointer;
-    border-width: 2px;
-  }
-  .insight-clickable:hover {
-    transform: translateY(-4px);
-    border-color: #4f46e5;
-    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1);
-  }
-  .insight-clickable.active {
-    border-color: #4f46e5;
-    background: #f5f3ff;
-  }
-  .insight-clickable.danger:hover {
-    border-color: #ef4444;
-    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1);
-  }
-  .insight-clickable.danger.active {
-    border-color: #ef4444;
-    background: #fef2f2;
-  }
-  .admin-tabs .btn.active {
-    background: #4f46e5;
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-  }
-  .admin-tabs .btn {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #64748b;
-    transition: all 0.2s;
-  }
-  .table-active {
-    background-color: #f8fafc !important;
-  }
-  .extra-small {
-    font-size: 0.7rem;
-    font-weight: 600;
-  }
-  .spin {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .log-timeline::-webkit-scrollbar {
-    width: 6px;
-  }
-  .log-timeline::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
-  }
-</style>

@@ -51,7 +51,7 @@ public class AdminController {
         long totalTasks = taskRepository.count();
         
         long projectsWithoutOwner = projectRepository.findAll().stream()
-                .filter(p -> projectUserRepository.findByProjectId(p.getId()).stream()
+                .filter(p -> projectUserRepository.findByProject_Id(p.getId()).stream()
                         .noneMatch(pu -> pu.getProjectRole() == ProjectRole.OWNER))
                 .count();
         
@@ -64,7 +64,7 @@ public class AdminController {
                 .count();
         
         long idleUsers = userRepository.findAll().stream()
-                .filter(u -> projectUserRepository.findByUserId(u.getId()).isEmpty())
+                .filter(u -> projectUserRepository.findByUser_Id(u.getId()).isEmpty())
                 .count();
 
         return ResponseEntity.ok(Map.of(
@@ -93,8 +93,8 @@ public class AdminController {
             map.put("email", user.getEmail());
             map.put("skills", user.getSkills());
             map.put("globalRole", user.getGlobalRole());
-            map.put("assignedTaskCount", taskRepository.countByAssigneeId(user.getId()));
-            map.put("projectCount", (long) projectUserRepository.findByUserId(user.getId()).size());
+            map.put("assignedTaskCount", taskRepository.countByAssignee_Id(user.getId()));
+            map.put("projectCount", (long) projectUserRepository.findByUser_Id(user.getId()).size());
             return map;
         }).toList();
         return ResponseEntity.ok(users);
@@ -190,15 +190,15 @@ public class AdminController {
             }
         }
 
-        taskRepository.findByAssigneeId(userId).forEach(task -> {
+        taskRepository.findByAssignee_Id(userId).forEach(task -> {
             task.setAssignee(null);
             taskRepository.save(task);
         });
-        taskRepository.findByCreatorId(userId).forEach(task -> {
+        taskRepository.findByCreator_Id(userId).forEach(task -> {
             task.setCreator(null);
             taskRepository.save(task);
         });
-        projectUserRepository.findByUserId(userId).forEach(projectUserRepository::delete);
+        projectUserRepository.findByUser_Id(userId).forEach(projectUserRepository::delete);
         userRepository.delete(user);
         auditService.log("DELETE_USER", "USER", userId.toString(), "Deleted user: " + userEmail, currentUser.getUsername());
         return ResponseEntity.ok().build();
@@ -212,9 +212,9 @@ public class AdminController {
             map.put("name", project.getName());
             map.put("description", project.getDescription());
             map.put("methodology", project.getMethodology());
-            map.put("taskCount", taskRepository.countByProjectId(project.getId()));
-            map.put("memberCount", projectUserRepository.countByProjectId(project.getId()));
-            projectUserRepository.findByProjectId(project.getId()).stream()
+            map.put("taskCount", taskRepository.countByProject_Id(project.getId()));
+            map.put("memberCount", projectUserRepository.countByProject_Id(project.getId()));
+            projectUserRepository.findByProject_Id(project.getId()).stream()
                     .filter(member -> member.getProjectRole() == ProjectRole.OWNER)
                     .findFirst()
                     .ifPresent(owner -> map.put("owner", owner.getUser()));
@@ -267,8 +267,8 @@ public class AdminController {
     public ResponseEntity<?> deleteProject(@PathVariable Long projectId, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         Project project = projectRepository.findById(projectId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
         String projectName = project.getName();
-        taskRepository.deleteByProjectId(projectId);
-        projectUserRepository.findByProjectId(projectId).forEach(projectUserRepository::delete);
+        taskRepository.deleteByProject_Id(projectId);
+        projectUserRepository.findByProject_Id(projectId).forEach(projectUserRepository::delete);
         projectRepository.deleteById(projectId);
         auditService.log("DELETE_PROJECT", "PROJECT", projectId.toString(), "Deleted project: " + projectName, currentUser.getUsername());
         return ResponseEntity.ok().build();
@@ -300,9 +300,9 @@ public class AdminController {
                 long adminCount = userRepository.findAll().stream().filter(u -> u.getGlobalRole() == GlobalRole.ADMIN).count();
                 if (adminCount <= 1) continue;
             }
-            taskRepository.findByAssigneeId(user.getId()).forEach(t -> { t.setAssignee(null); taskRepository.save(t); });
-            taskRepository.findByCreatorId(user.getId()).forEach(t -> { t.setCreator(null); taskRepository.save(t); });
-            projectUserRepository.findByUserId(user.getId()).forEach(projectUserRepository::delete);
+            taskRepository.findByAssignee_Id(user.getId()).forEach(t -> { t.setAssignee(null); taskRepository.save(t); });
+            taskRepository.findByCreator_Id(user.getId()).forEach(t -> { t.setCreator(null); taskRepository.save(t); });
+            projectUserRepository.findByUser_Id(user.getId()).forEach(projectUserRepository::delete);
             userRepository.delete(user);
         }
         auditService.log("BULK_DELETE_USERS", "USER", "multiple", "Deleted users: " + users.stream().map(User::getEmail).collect(Collectors.joining(", ")), currentUser.getUsername());
@@ -314,8 +314,8 @@ public class AdminController {
     public ResponseEntity<?> bulkDeleteProjects(@RequestBody List<Long> projectIds, @AuthenticationPrincipal UserDetailsImpl currentUser) {
         List<Project> projects = projectRepository.findAllById(projectIds);
         for (Long id : projectIds) {
-            taskRepository.deleteByProjectId(id);
-            projectUserRepository.findByProjectId(id).forEach(projectUserRepository::delete);
+            taskRepository.deleteByProject_Id(id);
+            projectUserRepository.findByProject_Id(id).forEach(projectUserRepository::delete);
             projectRepository.deleteById(id);
         }
         auditService.log("BULK_DELETE_PROJECTS", "PROJECT", "multiple", "Deleted projects: " + projects.stream().map(Project::getName).collect(Collectors.joining(", ")), currentUser.getUsername());

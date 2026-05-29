@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProjectUserRepository extends JpaRepository<ProjectUser, Long> {
-    Optional<ProjectUser> findByProjectIdAndUserId(Long projectId, Long userId);
-    List<ProjectUser> findByUserId(Long userId);
-    List<ProjectUser> findByProjectId(Long projectId);
-    long countByProjectId(Long projectId);
+    Optional<ProjectUser> findByProject_IdAndUser_Id(Long projectId, Long userId);
+    List<ProjectUser> findByUser_Id(Long userId);
+    List<ProjectUser> findByProject_Id(Long projectId);
+    long countByProject_Id(Long projectId);
 }

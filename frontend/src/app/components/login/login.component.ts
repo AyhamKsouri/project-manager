@@ -4,7 +4,8 @@ import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   isLoginMode = true;
@@ -49,5 +50,10 @@ export class LoginComponent {
         this.loading = false;
       }
     });
+  }
+
+  onForgotPassword(): void {
+    this.success = 'Password reset instructions have been sent to your email (Demo Mode).';
+    setTimeout(() => this.success = '', 5000);
   }
 }
