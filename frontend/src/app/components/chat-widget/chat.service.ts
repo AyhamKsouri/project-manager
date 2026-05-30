@@ -1,7 +1,13 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, of, tap } from 'rxjs';
 import { BotResponse, ChatRequest, Message, SprintContext } from './chat.models';
+
+export const CHAT_GREETING =
+  "Bonjour ! Ouvre un projet et je m'occupe du reste — charge d'équipe, santé du sprint, risques, tâches non assignées.";
+
+export const NO_PROJECT_MESSAGE =
+  "Aucun projet ouvert. Ouvre un projet pour que je puisse analyser les données.";
 
 @Injectable({ providedIn: 'root' })
 export class SprintRefreshService {
@@ -36,7 +42,7 @@ export class ChatService {
   private historySubject = new BehaviorSubject<Message[]>([
     {
       role: 'assistant',
-      content: '[Résultat]\nAssistant ProManager activé.\n\n[Analyse]\nJe suis prêt à vous aider à suivre la vélocité, la charge de l’équipe et la santé du sprint.\n\n[Recommandation]\nOuvrez un espace projet pour commencer la coordination.'
+      content: CHAT_GREETING
     }
   ]);
 
@@ -48,14 +54,38 @@ export class ChatService {
     return this.historySubject.value;
   }
 
-  sendMessage(message: string, sprintContext: SprintContext): Observable<BotResponse> {
+  formatChatError(err: unknown): string {
+    console.error('[ChatService] chat API error:', err);
+
+    const httpErr = err as { error?: { detail?: string | Array<{ msg?: string }> }; message?: string; status?: number };
+    const detail = httpErr?.error?.detail;
+
+    if (typeof detail === 'string' && detail.trim()) {
+      return detail;
+    }
+    if (Array.isArray(detail)) {
+      const messages = detail.map(item => item?.msg).filter(Boolean);
+      if (messages.length) {
+        return messages.join(' ');
+      }
+    }
+    if (httpErr?.status === 0) {
+      return "Impossible de joindre l'assistant. Vérifiez votre connexion.";
+    }
+    if (httpErr?.status === 429) {
+      return 'Trop de requêtes. Attendez quelques secondes et réessayez.';
+    }
+    return "Une erreur est survenue. Réessayez dans un instant.";
+  }
+
+  sendMessage(message: string, sprintContext: SprintContext | null): Observable<BotResponse> {
     const userMessage: Message = { role: 'user', content: message };
     const conversationHistory = this.history.filter(item => item.content.trim()).slice(-20);
     this.historySubject.next([...this.history, userMessage]);
 
     const payload: ChatRequest = {
       message,
-      sprintContext,
+      sprintContext: sprintContext ?? undefined,
       conversationHistory
     };
 
@@ -69,6 +99,18 @@ export class ChatService {
         if (response.actionTaken) {
           this.sprintRefreshService.requestRefresh();
         }
+      }),
+      catchError(err => {
+        const errorMessage = this.formatChatError(err);
+        this.historySubject.next([
+          ...this.history,
+          { role: 'assistant', content: errorMessage }
+        ]);
+        return of({
+          reply: errorMessage,
+          actionTaken: false,
+          intent: 'UNKNOWN'
+        } as BotResponse);
       })
     );
   }

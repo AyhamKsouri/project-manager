@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { ChatContextService, ChatService } from './chat.service';
+import { ChatContextService, ChatService, NO_PROJECT_MESSAGE } from './chat.service';
 import { Message, SprintContext } from './chat.models';
 
 @Component({
@@ -75,7 +75,7 @@ export class ChatWidgetComponent implements AfterViewChecked, OnDestroy, OnInit 
     if (!message || this.isTyping) return;
 
     if (!this.sprintContext) {
-      this.chatService.addAssistantMessage('Ouvrez d’abord un espace projet. J’ai besoin du contexte du projet pour vous aider avec le sprint.');
+      this.chatService.addAssistantMessage(NO_PROJECT_MESSAGE);
       this.draft = '';
       this.shouldScroll = true;
       return;
@@ -91,9 +91,8 @@ export class ChatWidgetComponent implements AfterViewChecked, OnDestroy, OnInit 
         this.shouldScroll = true;
         if (!this.isOpen) this.unreadCount += 1;
       },
-      error: (err) => {
+      error: () => {
         this.isTyping = false;
-        this.chatService.addAssistantMessage(err.error?.detail || 'Je n\'ai pas pu terminer cette requête. Veuillez réessayer.');
         this.shouldScroll = true;
         if (!this.isOpen) this.unreadCount += 1;
       }

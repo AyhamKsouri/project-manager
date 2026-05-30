@@ -7,6 +7,7 @@ The application features a **10/10 Premium UI/UX** inspired by modern SaaS platf
 ## Features
 
 - **Premium UI/UX**: High-end design with a refined Zinc color palette, geometric radius scale, and multi-layered elevation system.
+- **AI Project Assistant**: Interactive chat widget that can analyze project health, suggest reassignments, and execute board actions (create, move, edit tasks) using natural language.
 - **Dynamic Kanban Board**: Advanced board with glassmorphic headers, real-time health metrics, and smooth drag-and-drop interactions.
 - **AI Task Generation**: Automatically creates realistic project tasks and provides assignment reasoning based on member skills and current workload.
 - **AI Risk Analysis**: Proactively identifies bottlenecks, overloaded members, and potential delays with actionable recommendations.

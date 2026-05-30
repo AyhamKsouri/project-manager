@@ -29,7 +29,7 @@ export interface SprintContext {
 
 export interface ChatRequest {
   message: string;
-  sprintContext: SprintContext;
+  sprintContext?: SprintContext | null;
   conversationHistory: Message[];
 }
 
