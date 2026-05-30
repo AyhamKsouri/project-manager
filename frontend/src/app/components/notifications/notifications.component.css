@@ -1,28 +1,68 @@
+/* design cleanup — Notifications screen styles */
+
 .notification-card {
   cursor: pointer;
   border-left: 4px solid transparent !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .notification-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: var(--shadow-md) !important;
 }
+
 .notification-card.unread {
   border-left-color: var(--primary-indigo) !important;
-  background-color: #f8faff !important;
+  background-color: var(--primary-indigo-soft) !important;
 }
+
 .notification-icon-wrapper {
   width: 40px;
   height: 40px;
   font-size: 1.1rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.notification-icon-wrapper.info { background: #e0f2fe; color: #0369a1; }
-.notification-icon-wrapper.success { background: #dcfce7; color: #15803d; }
-.notification-icon-wrapper.warning { background: #fef3c7; color: #a16207; }
-.notification-icon-wrapper.danger { background: #fee2e2; color: #b91c1c; }
 
-.fw-800 { font-weight: 800; }
-.smaller { font-size: 0.7rem; }
-.letter-spacing-1 { letter-spacing: 1px; }
-.hover-opacity-100:hover { opacity: 1 !important; }
-.btn-soft-primary { background: #eef2ff; color: #4f46e5; }
-.btn-soft-primary:hover { background: #e0e7ff; }
+.notification-icon-wrapper.info {
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.notification-icon-wrapper.success {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.notification-icon-wrapper.warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.notification-icon-wrapper.danger {
+  background: var(--danger-bg);
+  color: var(--danger-strong);
+}
+
+.empty-bell-icon {
+  font-size: 4rem;
+}
+
+.fw-800 {
+  font-weight: 800;
+}
+
+.hover-opacity-100:hover {
+  opacity: 1 !important;
+}
+
+.btn-soft-primary {
+  background: var(--primary-indigo-soft);
+  color: var(--primary-indigo);
+}
+
+.btn-soft-primary:hover {
+  background: rgba(54, 87, 245, 0.16);
+}

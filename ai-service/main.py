@@ -548,30 +548,46 @@ async def generate_tasks(request: TaskRequest):
 async def analyze_project_risk(request: RiskAnalysisRequest):
     if not client:
         return {
-            "bottlenecks": ["Lack of detailed API documentation", "Frontend-Backend integration dependency"],
-            "overloaded_members": ["Chef: Assigned to all critical design tasks"],
-            "likely_delays": ["API Design: Highly complex requirements"],
-            "recommendations": ["Delegate API documentation to Member", "Schedule early integration testing"]
+            "bottlenecks": [
+                "Lucas Bernard est assigné à plusieurs tâches prioritaires (Intégration paiement Stripe, API catalogue produits, Authentification JWT & rôles), ce qui peut créer des frictions et des retards.",
+                "Les tâches « Intégration paiement Stripe » et « API catalogue produits » ont des story points élevés et des échéances proches, ce qui peut bloquer le planning.",
+            ],
+            "overloaded_members": [
+                "Lucas Bernard : plusieurs tâches prioritaires à fort volume (Intégration paiement Stripe, API catalogue produits, Authentification JWT & rôles).",
+                "Thomas Leroy : tâches prioritaires avec échéances serrées (Tests unitaires module panier, Revue sécurité OWASP).",
+            ],
+            "likely_delays": [
+                "Maquettes page d'accueil : priorité haute, échéance proche, peu de visibilité sur l'avancement.",
+                "Composants catalogue Angular : dépend des maquettes et reste en cours avec une charge importante.",
+            ],
+            "recommendations": [
+                "Rééquilibrer les assignations pour mieux répartir la charge entre les membres de l'équipe.",
+                "Prioriser les tâches selon l'échéance et l'impact métier, en validant d'abord les livrables en révision.",
+                "Planifier une revue de sprint dédiée aux tâches à risque identifiées.",
+            ],
         }
 
     prompt = f"""
-    You are an expert Project Risk Analyst. Analyze the following project data and identify risks.
+    Tu es un expert en analyse des risques de projet. Analyse les données suivantes et identifie les risques.
     
-    Team Members: {request.team_members}
-    Tasks Data: {request.tasks}
+    IMPORTANT : Toutes les réponses (chaînes de texte dans le JSON) doivent être rédigées en français.
+    Conserve les noms propres des personnes et des tâches tels quels.
     
-    Analyze:
-    1. Bottlenecks: Which tasks or dependencies are causing the most friction?
-    2. Overloaded Members: Who has too many story points or high-priority tasks?
-    3. Likely Delays: Which tasks are overdue or at high risk of missing deadlines?
-    4. Recommendations: Provide actionable advice to mitigate these risks.
+    Membres de l'équipe : {request.team_members}
+    Données des tâches : {request.tasks}
     
-    Respond ONLY in JSON format matching this structure:
+    Analyse :
+    1. Goulots d'étranglement : quelles tâches ou dépendances créent le plus de friction ?
+    2. Charge des ressources : qui a trop de story points ou de tâches prioritaires ?
+    3. Retards probables : quelles tâches sont en retard ou risquent de manquer leur échéance ?
+    4. Recommandations : conseils actionnables pour atténuer ces risques.
+    
+    Réponds UNIQUEMENT en JSON avec cette structure :
     {{
-        "bottlenecks": ["description of bottleneck 1", "..."],
-        "overloaded_members": ["Member Name: reason", "..."],
-        "likely_delays": ["Task Title: reason", "..."],
-        "recommendations": ["Actionable advice 1", "..."]
+        "bottlenecks": ["description du goulot 1", "..."],
+        "overloaded_members": ["Nom du membre : raison", "..."],
+        "likely_delays": ["Titre de la tâche : raison", "..."],
+        "recommendations": ["Conseil actionnable 1", "..."]
     }}
     """
 
@@ -579,7 +595,7 @@ async def analyze_project_risk(request: RiskAnalysisRequest):
         messages=[
             {
                 "role": "system",
-                "content": "You are a professional project risk analyzer that outputs only valid JSON.",
+                "content": "Tu es un analyste de risques projet professionnel. Tu réponds uniquement en JSON valide. Tous les textes des tableaux doivent être en français.",
             },
             {
                 "role": "user",

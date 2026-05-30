@@ -32,4 +32,14 @@ export class TaskCardComponent {
     event.stopPropagation();
     this.reject.emit(this.task.id);
   }
+
+  priorityLabel(priority?: string): string {
+    switch (priority?.toLowerCase()) {
+      case 'critical': return 'Critique';
+      case 'high': return 'Haute';
+      case 'medium': return 'Moyenne';
+      case 'low': return 'Basse';
+      default: return priority || 'Moyenne';
+    }
+  }
 }

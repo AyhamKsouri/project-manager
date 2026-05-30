@@ -1,7 +1,7 @@
 <div class="modal-backdrop-premium" *ngIf="isOpen" (click)="onBackdropClick($event)" [class.side-panel-backdrop]="variant === 'side-panel'">
   <div class="modal-container-premium" 
        [ngClass]="['modal-' + size, glass ? 'modal-container-glass' : '', 'variant-' + variant]"
-       [style.max-width.px]="variant === 'side-panel' ? null : (size === 'sm' ? 400 : size === 'md' ? 600 : size === 'lg' ? 850 : 1100)">1100">
+       [style.max-width.px]="variant === 'side-panel' ? null : (size === 'sm' ? 400 : size === 'md' ? 600 : size === 'lg' ? 850 : 1100)">
     
     <!-- Header -->
     <div class="modal-header-premium">

@@ -27,7 +27,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
   // Phase 5: Sprint View Data
   sprints: string[] = [];
   tasksBySprint: { [key: string]: any[] } = {};
-  selectedSprint: string = 'All Sprints';
+  selectedSprint: string = 'Tous les sprints';
   activeView: 'kanban' | 'sprint' = 'kanban';
 
   private stompClient: Client | null = null;
@@ -196,7 +196,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     const context: SprintContext = {
       sprintId: 'current', // or specific sprint ID if applicable
       projectId: this.projectId,
-      sprintName: 'Active Sprint',
+      sprintName: 'Sprint actif',
       tasks: this.allTasks.map(t => ({
         id: t.id,
         title: t.title,
@@ -223,9 +223,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
         this.showInviteModal = false;
         this.inviteEmail = '';
         this.searchResults = [];
-        this.toastService.success('Member added successfully');
+        this.toastService.success('Membre ajouté avec succès');
       },
-      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to invite')
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Invitation impossible')
     });
   }
 
@@ -252,26 +252,26 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.projectService.updateMemberRole(this.projectId, userId, role).subscribe({
       next: () => {
         this.loadProjectMembers();
-        this.toastService.success('Role updated successfully');
+        this.toastService.success('Rôle mis à jour');
       },
-      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to update role')
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Mise à jour du rôle impossible')
     });
   }
 
   removeMember(userId: number): void {
     this.confirmService.confirm({
-      title: 'Remove Member',
-      message: 'Are you sure you want to remove this member?',
-      confirmText: 'Remove',
+      title: 'Retirer le membre',
+      message: 'Voulez-vous vraiment retirer ce membre du projet ?',
+      confirmText: 'Retirer',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
       this.projectService.removeMember(this.projectId, userId).subscribe({
         next: () => {
           this.loadProjectMembers();
-          this.toastService.success('Member removed');
+          this.toastService.success('Membre retiré');
         },
-        error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to remove member')
+        error: (err) => this.toastService.error(err.error?.message || err.error || 'Retrait du membre impossible')
       });
     });
   }
@@ -313,47 +313,47 @@ export class KanbanComponent implements OnInit, OnDestroy {
       next: (project) => {
         this.project = project;
         this.showProjectSettingsModal = false;
-        this.toastService.success('Project settings updated');
+        this.toastService.success('Paramètres du projet mis à jour');
         this.loadProject();
       },
-      error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to update project')
+      error: (err) => this.toastService.error(err.error?.message || err.error || 'Mise à jour du projet impossible')
     });
   }
 
   transferOwnership(): void {
     if (!this.projectSettings.newOwnerId) return;
     this.confirmService.confirm({
-      title: 'Transfer Ownership',
-      message: 'Transfer project ownership to this member?',
-      confirmText: 'Transfer',
+      title: 'Transférer la propriété',
+      message: 'Transférer la propriété du projet à ce membre ?',
+      confirmText: 'Transférer',
       type: 'primary'
     }).then(confirmed => {
       if (!confirmed) return;
       this.projectService.transferOwnership(this.projectId, this.projectSettings.newOwnerId as number).subscribe({
         next: () => {
-          this.toastService.success('Ownership transferred');
+          this.toastService.success('Propriété transférée');
           this.showProjectSettingsModal = false;
           this.loadProjectMembers();
         },
-        error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to transfer ownership')
+        error: (err) => this.toastService.error(err.error?.message || err.error || 'Transfert impossible')
       });
     });
   }
 
   deleteProject(): void {
     this.confirmService.confirm({
-      title: 'Delete Project',
-      message: `Delete project "${this.project?.name}" and all of its tasks? This action cannot be undone.`,
-      confirmText: 'Delete Project',
+      title: 'Supprimer le projet',
+      message: `Supprimer le projet "${this.project?.name}" et toutes ses tâches ? Cette action est irréversible.`,
+      confirmText: 'Supprimer le projet',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
       this.projectService.deleteProject(this.projectId).subscribe({
         next: () => {
-          this.toastService.success('Project deleted');
+          this.toastService.success('Projet supprimé');
           this.router.navigate(['/dashboard']);
         },
-        error: (err) => this.toastService.error(err.error?.message || err.error || 'Failed to delete project')
+        error: (err) => this.toastService.error(err.error?.message || err.error || 'Suppression du projet impossible')
       });
     });
   }
@@ -374,10 +374,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!this.canApprove()) return;
     this.taskService.updateTaskStatus(taskId, 'COMPLETED').subscribe({
       next: () => {
-        this.toastService.success('Task approved and completed');
+        this.toastService.success('Tâche validée et terminée');
         this.loadTasks();
       },
-      error: (err) => this.toastService.error(err.error?.message || 'Failed to approve task')
+      error: (err) => this.toastService.error(err.error?.message || 'Validation impossible')
     });
   }
 
@@ -385,10 +385,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!this.canApprove()) return;
     this.taskService.updateTaskStatus(taskId, 'IN_PROGRESS').subscribe({
       next: () => {
-        this.toastService.success('Task sent back for revision');
+        this.toastService.success('Tâche renvoyée pour révision');
         this.loadTasks();
       },
-      error: (err) => this.toastService.error(err.error?.message || 'Failed to send back task')
+      error: (err) => this.toastService.error(err.error?.message || 'Renvoi impossible')
     });
   }
 
@@ -448,7 +448,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     
     if (scores.length > 0) {
       this.newTask.assigneeId = scores[0].member.user.id;
-      this.toastService.info(`Suggested ${scores[0].member.user.name} based on workload and skills`);
+      this.toastService.info(`${scores[0].member.user.name} suggéré selon la charge et les compétences`);
     }
   }
 
@@ -523,7 +523,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
       
       // Move task rule: Only Assignee can move the task
       if (!this.isAssignee(task)) {
-        this.toastService.warning('Only the assignee can move this task', 'Permission Denied');
+        this.toastService.warning('Seule la personne assignée peut déplacer cette tâche', 'Permission refusée');
         return;
       }
 
@@ -532,9 +532,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
         error: (err: any) => { 
           this.loadTasks(); 
           if(err.status === 403) {
-            this.toastService.error('Only Owners or Admins can validate task completion!', 'Restricted');
+            this.toastService.error('Seuls les propriétaires ou administrateurs peuvent valider une tâche terminée.', 'Action limitée');
           } else {
-            this.toastService.error(err.error?.message || 'Failed to update status');
+            this.toastService.error(err.error?.message || 'Mise à jour du statut impossible');
           }
         }
       });
@@ -548,9 +548,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
         if (this.selectedTask && this.selectedTask.id === taskId) {
           this.selectedTask = updatedTask;
         }
-        this.toastService.success('Assignee updated');
+        this.toastService.success('Assignation mise à jour');
       },
-      error: (err) => this.toastService.error(err.error?.message || 'Error updating assignee')
+      error: (err) => this.toastService.error(err.error?.message || 'Mise à jour de l’assignation impossible')
     });
   }
 
@@ -560,9 +560,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
     // Format team skills: "Name:Skill1,Skill2; Name2:Skill3"
     // Use real user skills and active task counts for smarter assignment
     const teamData = this.projectMembers.map(m => {
-      const skills = m.user.skills || 'Developer';
+      const skills = m.user.skills || 'Développeur';
       const activeTasks = this.getMemberWorkload(m.user.id);
-      return `${m.user.name}:${skills} (${activeTasks} active tasks)`;
+      return `${m.user.name}:${skills} (${activeTasks} tâches actives)`;
     }).join('; ');
 
     const projectDesc = this.project.description || this.project.name;
@@ -571,10 +571,10 @@ export class KanbanComponent implements OnInit, OnDestroy {
     this.aiService.generateTasks(this.projectId, projectDesc, teamData, methodology).subscribe({
       next: (res: any) => {
         const tasks = res.tasks || [];
-        this.toastService.success(`Successfully generated ${tasks.length} tasks!`, 'AI Planner');
+        this.toastService.success(`${tasks.length} tâches générées avec succès !`, 'Planificateur IA');
         this.loadTasks();
       },
-      error: (err: any) => this.toastService.error(err.error?.error || 'Unknown error', 'AI Error')
+      error: (err: any) => this.toastService.error(err.error?.error || 'Erreur inconnue', 'Erreur IA')
     });
   }
 
@@ -586,17 +586,17 @@ export class KanbanComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.showTaskDetailModal = false;
-        this.toastService.success('Task updated successfully');
+        this.toastService.success('Tâche mise à jour');
       },
-      error: (err) => this.toastService.error(err.error?.message || 'Failed to update task')
+      error: (err) => this.toastService.error(err.error?.message || 'Mise à jour de la tâche impossible')
     });
   }
 
   deleteTask(taskId: number): void {
     this.confirmService.confirm({
-      title: 'Delete Task',
-      message: 'Are you sure you want to delete this task?',
-      confirmText: 'Delete',
+      title: 'Supprimer la tâche',
+      message: 'Voulez-vous vraiment supprimer cette tâche ?',
+      confirmText: 'Supprimer',
       type: 'danger'
     }).then(confirmed => {
       if (!confirmed) return;
@@ -605,9 +605,9 @@ export class KanbanComponent implements OnInit, OnDestroy {
           this.loadTasks();
           this.showTaskDetailModal = false;
           this.selectedTask = null;
-          this.toastService.success('Task deleted');
+          this.toastService.success('Tâche supprimée');
         },
-        error: (err) => this.toastService.error(err.error?.message || 'Failed to delete task')
+        error: (err) => this.toastService.error(err.error?.message || 'Suppression de la tâche impossible')
       });
     });
   }
@@ -619,12 +619,42 @@ export class KanbanComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.showCreateTaskModal = false;
         this.newTask = { title: '', description: '', priority: 'Medium', assigneeId: null };
-        this.toastService.success('Task created');
+        this.toastService.success('Tâche créée');
         // The WebSocket will trigger loadTasks() automatically
       },
       error: (err) => {
-        this.toastService.error(err.error?.message || err.error?.error || 'Failed to create task');
+        this.toastService.error(err.error?.message || err.error?.error || 'Création de la tâche impossible');
       }
     });
+  }
+
+  roleLabel(role: string): string {
+    switch (role) {
+      case 'OWNER': return 'Propriétaire';
+      case 'ADMIN': return 'Administrateur';
+      case 'MEMBER': return 'Membre';
+      case 'VIEWER': return 'Observateur';
+      default: return role;
+    }
+  }
+
+  statusLabel(status?: string): string {
+    switch (status) {
+      case 'TODO': return 'À faire';
+      case 'IN_PROGRESS': return 'En cours';
+      case 'IN_REVIEW': return 'En révision';
+      case 'COMPLETED': return 'Terminé';
+      default: return status?.replace('_', ' ') || '';
+    }
+  }
+
+  priorityLabel(priority?: string): string {
+    switch (priority?.toLowerCase()) {
+      case 'critical': return 'Critique';
+      case 'high': return 'Haute';
+      case 'medium': return 'Moyenne';
+      case 'low': return 'Basse';
+      default: return priority || 'Moyenne';
+    }
   }
 }

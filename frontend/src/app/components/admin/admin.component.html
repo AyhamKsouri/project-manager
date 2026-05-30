@@ -120,7 +120,7 @@
           <table class="table align-middle">
             <thead>
               <tr>
-                <th style="width: 40px"></th>
+                <th class="col-icon"></th>
                 <th>Utilisateur</th>
                 <th>Rôle</th>
                 <th>Projets</th>
@@ -199,7 +199,7 @@
           <table class="table align-middle">
             <thead>
               <tr>
-                <th style="width: 40px"></th>
+                <th class="col-icon"></th>
                 <th>Projet</th>
                 <th>Propriétaire</th>
                 <th>Tâches</th>
@@ -259,7 +259,7 @@
       <table class="table align-middle">
         <thead>
           <tr>
-            <th style="width: 40px"></th>
+            <th class="col-icon"></th>
             <th>Tâche</th>
             <th>Projet</th>
             <th>Statut</th>
@@ -278,7 +278,7 @@
                 {{ task.title }}
                 <span class="ms-2 badge bg-warning text-dark extra-small" *ngIf="!task.assignee">Non assigné</span>
               </div>
-              <div class="text-muted small text-truncate" style="max-width: 250px;">{{ task.description || 'Aucune description' }}</div>
+              <div class="text-muted small text-truncate task-desc-cell">{{ task.description || 'Aucune description' }}</div>
             </td>
             <td>
               <span class="small fw-bold text-primary">{{ task.projectName || 'Inconnu' }}</span>
@@ -309,7 +309,7 @@
       <h5 class="fw-bold mb-0">Journal d'audit et d'historique</h5>
       <span class="text-muted small">Suivi des modifications du système pour la responsabilité.</span>
     </div>
-    <div class="log-timeline" style="max-height: 600px; overflow-y: auto;">
+    <div class="log-timeline log-timeline-scroll">
       <div class="log-item p-3 mb-2 border-start border-4 rounded-3 bg-light shadow-sm d-flex justify-content-between align-items-center" 
            *ngFor="let log of logs"
            [class.border-danger]="log.action.includes('DELETE')"

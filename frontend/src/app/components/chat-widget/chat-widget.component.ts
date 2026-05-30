@@ -24,10 +24,10 @@ export class ChatWidgetComponent implements AfterViewChecked, OnDestroy, OnInit 
   private contextSubscription?: Subscription;
 
   quickActions = [
-    { label: 'Sprint Health', message: 'Generate a Sprint Health Score and identify bottlenecks.' },
-    { label: 'Optimize Workload', message: 'Analyze team capacity and suggest workload balancing.' },
-    { label: 'Predict Risks', message: 'Detect any upcoming sprint risks or missed deadlines.' },
-    { label: 'Smart Assignment', message: 'Suggest the best assignees for current unassigned tasks.' }
+    { label: 'Santé du sprint', message: 'Génère un score de santé du sprint et identifie les blocages.' },
+    { label: 'Charge équipe', message: 'Analyse la capacité de l’équipe et propose un meilleur équilibrage.' },
+    { label: 'Risques à venir', message: 'Détecte les risques du sprint et les échéances menacées.' },
+    { label: 'Assignation IA', message: 'Suggère les meilleures personnes pour les tâches non assignées.' }
   ];
 
   constructor(public chatService: ChatService, private chatContextService: ChatContextService) {}
@@ -75,7 +75,7 @@ export class ChatWidgetComponent implements AfterViewChecked, OnDestroy, OnInit 
     if (!message || this.isTyping) return;
 
     if (!this.sprintContext) {
-      this.chatService.addAssistantMessage('Please open a project workspace first. I need project context to assist you with sprint management.');
+      this.chatService.addAssistantMessage('Ouvrez d’abord un espace projet. J’ai besoin du contexte du projet pour vous aider avec le sprint.');
       this.draft = '';
       this.shouldScroll = true;
       return;

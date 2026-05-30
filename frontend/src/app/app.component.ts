@@ -36,13 +36,11 @@ import { Observable } from 'rxjs';
           </ul>
           <div class="d-flex align-items-center gap-3">
             <!-- Notification Bell -->
-            <a routerLink="/notifications" class="btn btn-light position-relative rounded-circle d-flex align-items-center justify-content-center" 
-               style="width: 42px; height: 42px; background-color: #f1f5f9; border: none;"
+            <a routerLink="/notifications" class="btn btn-notification-bell position-relative rounded-circle d-flex align-items-center justify-content-center" 
                title="Notifications">
               <i class="bi bi-bell-fill fs-5 text-dark"></i>
               <span *ngIf="(unreadCount$ | async) !== null && (unreadCount$ | async)! > 0" 
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white" 
-                    style="font-size: 0.7rem; padding: 0.35em 0.5em;">
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white notification-count-badge">
                 {{ unreadCount$ | async }}
               </span>
             </a>
@@ -68,7 +66,7 @@ import { Observable } from 'rxjs';
     <app-confirm-modal></app-confirm-modal>
 
     <!-- Toast Notifications Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
+    <div class="toast-container toast-container-app position-fixed bottom-0 end-0 p-3">
       <div *ngFor="let toast of toasts$ | async" 
            class="toast show mb-2 border-0 shadow-lg animate-slide-in" 
            [ngClass]="getToastClass(toast.type)"

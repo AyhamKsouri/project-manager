@@ -10,17 +10,32 @@
             </div>
             <span class="brand-name">ProManager</span>
           </div>
-          <h1 class="display-5 fw-bold mb-3 mt-4">Organisez votre travail <br><span class="text-highlight">sans effort.</span></h1>
-          <p class="lead opacity-75">La façon la plus intuitive de gérer vos projets, de suivre vos tâches et de collaborer avec votre équipe en temps réel.</p>
+          <div class="brand-kicker">Gestion de projet augmentée</div>
+          <h1 class="display-5 fw-bold mb-3 mt-4">Pilotez vos projets avec une clarté <span class="text-highlight">immédiate.</span></h1>
+          <p class="lead opacity-75">Un espace moderne pour organiser les tâches, équilibrer la charge et garder toute l’équipe alignée.</p>
+          <div class="brand-proof-grid mt-5">
+            <div>
+              <strong>Kanban</strong>
+              <span>Priorités visibles</span>
+            </div>
+            <div>
+              <strong>IA</strong>
+              <span>Assignations guidées</span>
+            </div>
+            <div>
+              <strong>Temps réel</strong>
+              <span>Équipe synchronisée</span>
+            </div>
+          </div>
         </div>
 
         <div class="testimonial-box p-4 rounded-4 bg-white bg-opacity-10 backdrop-blur">
-          <p class="mb-3 italic small text-light">"Cet outil a complètement transformé la façon dont notre équipe gère les projets complexes. La vue Kanban change la donne !"</p>
+          <p class="mb-3 italic small text-light">"Tout est devenu plus lisible : les priorités, les blocages et la prochaine action à lancer."</p>
           <div class="d-flex align-items-center gap-3">
             <div class="avatar-sm rounded-circle bg-light text-primary fw-bold">JD</div>
             <div>
-              <div class="small fw-bold">Jane Doe</div>
-              <div class="extra-small opacity-75">Chef de projet chez TechCorp</div>
+              <div class="small fw-bold">Équipe produit</div>
+              <div class="extra-small opacity-75">Pilotage sprint et livraison</div>
             </div>
           </div>
         </div>
@@ -34,8 +49,9 @@
         </div>
 
         <div class="form-header mb-4">
+          <span class="form-kicker">{{ isLoginMode ? 'Connexion sécurisée' : 'Création de compte' }}</span>
           <h2 class="fw-bold text-dark mb-1">{{ isLoginMode ? 'Bon retour' : 'Commencer' }}</h2>
-          <p class="text-muted small">{{ isLoginMode ? 'Entrez vos identifiants pour accéder à votre espace de travail' : 'Créez un compte pour commencer à gérer vos projets' }}</p>
+          <p class="text-muted small">{{ isLoginMode ? 'Accédez à votre espace de travail et reprenez là où vous vous êtes arrêté.' : 'Créez un compte pour commencer à gérer vos projets.' }}</p>
         </div>
 
         <!-- Alert Messages -->
@@ -96,8 +112,8 @@
             </div>
 
             <div class="form-floating mb-4">
-              <input type="text" class="form-control rounded-3" id="regSkills" name="skills" [(ngModel)]="registerData.skills" placeholder="Compétences (Optionnel)">
-              <label for="regSkills">Compétences (Optionnel, ex: Java, Python)</label>
+              <input type="text" class="form-control rounded-3" id="regSkills" name="skills" [(ngModel)]="registerData.skills" placeholder="Compétences (optionnel)">
+              <label for="regSkills">Compétences (optionnel, ex. Java, Python)</label>
             </div>
 
             <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm mb-4 d-flex align-items-center justify-content-center" [disabled]="loading || !registerForm.valid">
@@ -123,7 +139,7 @@
             <span class="small fw-bold text-dark uppercase">Accès démo</span>
           </div>
           <div class="small text-muted font-monospace bg-white p-2 rounded-2 border">
-            admin&#64;pm.com / password
+            admin&#64;pm.com / mot de passe : password
           </div>
         </div>
       </div>

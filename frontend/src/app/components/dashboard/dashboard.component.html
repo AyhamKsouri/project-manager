@@ -65,8 +65,8 @@
     <p class="mt-2 text-muted">Chargement de vos projets...</p>
   </div>
 
-  <div class="col-md-6 col-lg-4" *ngFor="let project of projects" [hidden]="loading">
-    <div class="project-card h-100 shadow-sm border-0 rounded-4 overflow-hidden bg-white">
+  <div class="col-md-6 col-lg-4 d-flex" *ngFor="let project of projects" [hidden]="loading">
+    <div class="project-card w-100 shadow-sm border-0 rounded-4 overflow-hidden bg-white">
       <div class="project-card-header p-4 pb-0">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div class="methodology-badge" [ngClass]="project.methodology.toLowerCase()">
@@ -76,14 +76,14 @@
             <button class="btn btn-link text-muted p-0 border-0"><i class="bi bi-three-dots-vertical"></i></button>
           </div>
         </div>
-        <h4 class="fw-bold text-dark mb-2">{{ project.name }}</h4>
+        <h4 class="fw-bold text-dark mb-0 project-card-title">{{ project.name }}</h4>
       </div>
-      <div class="project-card-body p-4 pt-2">
-        <p class="text-muted small mb-4 project-description">
+      <div class="project-card-body p-4 pt-3">
+        <p class="text-muted small project-description">
           {{ project.description || 'Aucune description fournie.' }}
         </p>
-        
-        <div class="project-stats d-flex gap-3 mb-4">
+
+        <div class="project-stats d-flex gap-3">
           <div class="stat-item">
             <span class="stat-value fw-bold">{{ project.taskCount || 0 }}</span>
             <span class="stat-label text-muted extra-small">Tâches</span>
@@ -94,9 +94,11 @@
           </div>
         </div>
 
-        <button class="btn btn-light-primary w-100 py-2 rounded-3 fw-semibold transition-all" (click)="selectProject(project.id)">
-          Ouvrir l'espace <i class="bi bi-arrow-right ms-1"></i>
-        </button>
+        <div class="project-card-footer">
+          <button class="btn btn-light-primary w-100 py-2 rounded-3 fw-semibold transition-all" (click)="selectProject(project.id)">
+            Ouvrir l'espace <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -108,7 +110,7 @@
         <i class="bi bi-folder-plus display-1 text-light-indigo"></i>
       </div>
       <h3 class="fw-bold text-dark mb-2">Prêt à commencer quelque chose de nouveau ?</h3>
-      <p class="text-muted mb-4 mx-auto" style="max-width: 400px;">
+      <p class="text-muted mb-4 mx-auto empty-state-copy">
         Vous n'avez pas encore été affecté à des projets. Créez votre premier espace de travail pour commencer à collaborer.
       </p>
       <button class="btn btn-primary px-5 py-3 rounded-3 fw-bold shadow-sm" (click)="showCreateModal = true">
@@ -120,23 +122,23 @@
 
 <!-- Create Project Modal Redesigned V2 -->
  <app-modal [isOpen]="showCreateModal" 
-            [title]="'Create Workspace'" 
+            [title]="'Créer un espace projet'" 
             [size]="'md'" 
             (close)="showCreateModal = false">
    
    <form (ngSubmit)="createProject()" id="createProjectForm" class="mt-2">
      <div class="mb-4">
-       <label class="metadata-label">Project Name</label>
-       <input type="text" class="form-control-premium w-100" name="name" [(ngModel)]="newProject.name" required placeholder="e.g. Q3 Roadmap">
+       <label class="metadata-label">Nom du projet</label>
+       <input type="text" class="form-control-premium w-100" name="name" [(ngModel)]="newProject.name" required placeholder="ex. Feuille de route T3">
      </div>
      
      <div class="mb-4">
        <label class="metadata-label">Description</label>
-       <textarea class="form-control-premium w-100" name="description" [(ngModel)]="newProject.description" rows="3" placeholder="What is this workspace about?"></textarea>
+       <textarea class="form-control-premium w-100" name="description" [(ngModel)]="newProject.description" rows="3" placeholder="Quel est l’objectif de cet espace ?"></textarea>
      </div>
      
      <div class="mb-4">
-       <label class="metadata-label">Methodology</label>
+       <label class="metadata-label">Méthodologie</label>
        <select class="form-control-premium w-100" name="methodology" [(ngModel)]="newProject.methodology">
          <option value="Agile">Agile</option>
          <option value="Scrum">Scrum</option>
@@ -147,9 +149,9 @@
    </form>
  
    <div modal-footer>
-     <button type="button" class="btn btn-light" (click)="showCreateModal = false">Cancel</button>
+     <button type="button" class="btn btn-light" (click)="showCreateModal = false">Annuler</button>
      <button type="submit" form="createProjectForm" class="btn btn-primary-indigo" [disabled]="!newProject.name">
-       Create Workspace
+       Créer l’espace
      </button>
    </div>
  </app-modal>

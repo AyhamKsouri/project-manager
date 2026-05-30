@@ -15,7 +15,7 @@ export class AdminComponent implements OnInit {
   summary: any = { 
     users: 0, projects: 0, tasks: 0, 
     projectsWithoutOwner: 0, unassignedTasks: 0, 
-    highPriorityTasks: 0, idleUsers: 0, systemHealth: 'Unknown' 
+    highPriorityTasks: 0, idleUsers: 0, systemHealth: 'Inconnu' 
   };
   users: any[] = [];
   projects: any[] = [];

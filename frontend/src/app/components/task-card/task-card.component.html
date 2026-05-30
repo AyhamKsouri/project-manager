@@ -7,7 +7,7 @@
   <div class="card-priority-line" [ngClass]="task.priority?.toLowerCase() || 'medium'"></div>
   
   <!-- Grip Icon -->
-  <div class="drag-handle" *ngIf="canDrag" aria-label="Drag to reorder" cdkDragHandle>
+  <div class="drag-handle" *ngIf="canDrag" aria-label="Déplacer la tâche" cdkDragHandle>
     <i class="bi bi-grip-vertical" aria-hidden="true"></i>
   </div>
 
@@ -20,17 +20,17 @@
       </h6>
       
       <!-- Icon logic: Green check for completed, priority badge otherwise -->
-      <i class="bi bi-check-circle-fill text-success" *ngIf="task.status === 'COMPLETED'" aria-label="Task Completed"></i>
+      <i class="bi bi-check-circle-fill text-success" *ngIf="task.status === 'COMPLETED'" aria-label="Tâche terminée"></i>
       <span class="priority-badge" *ngIf="task.status !== 'COMPLETED'" [ngClass]="task.priority?.toLowerCase() || 'medium'">
         <i class="bi" [ngClass]="{'bi-fire': task.priority === 'critical', 'bi-exclamation-triangle': task.priority === 'high'}" aria-hidden="true"></i>
-        {{ task.priority }}
+        {{ priorityLabel(task.priority) }}
       </span>
     </div>
     
     <!-- Tooltip for non-assignees -->
-    <div class="drag-lock-overlay" *ngIf="!canDrag" title="Only assignee can move this task">
+    <div class="drag-lock-overlay" *ngIf="!canDrag" title="Seule la personne assignée peut déplacer cette tâche">
       <i class="bi bi-lock-fill" aria-hidden="true"></i>
-      <span class="visually-hidden">Only assignee can move this task</span>
+      <span class="visually-hidden">Seule la personne assignée peut déplacer cette tâche</span>
     </div>
     
     <p class="task-desc">{{ task.description }}</p>
@@ -62,7 +62,7 @@
       <div class="assignee ms-auto" *ngIf="task.assignee">
         <div class="avatar-circle" 
              role="img"
-             [attr.aria-label]="'Assignee: ' + task.assignee.name"
+             [attr.aria-label]="'Assigné à : ' + task.assignee.name"
              [class.bg-light]="task.status === 'COMPLETED'" 
              [class.text-muted]="task.status === 'COMPLETED'"
              [class.border]="task.status === 'COMPLETED'"
@@ -75,10 +75,10 @@
     <!-- Approve/Reject Actions (In Review Only) -->
     <div class="approval-actions mt-3 pt-2 border-top d-flex gap-2" *ngIf="canApprove">
       <button class="btn btn-sm btn-success-modern flex-grow-1 py-1 shadow-sm" (click)="onApprove($event)">
-        <i class="bi bi-check-lg me-1"></i> Approve
+        <i class="bi bi-check-lg me-1"></i> Valider
       </button>
       <button class="btn btn-sm btn-outline-danger-modern flex-grow-1 py-1 shadow-sm" (click)="onReject($event)">
-        <i class="bi bi-arrow-return-left me-1"></i> Reject
+        <i class="bi bi-arrow-return-left me-1"></i> Renvoyer
       </button>
     </div>
   </div>

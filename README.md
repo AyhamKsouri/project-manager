@@ -2,71 +2,73 @@
 
 ProManager is a full-stack project management application for teams that want task planning, workload visibility, and AI-assisted delivery workflows in one place. It combines an Angular 17 frontend, a Spring Boot backend, a PostgreSQL database, and a FastAPI AI service powered by Groq.
 
-The latest version includes AI-powered CV skill extraction: users can upload a PDF resume, review extracted skills, add or remove suggestions, and save the final skill list to their profile. Those profile skills are then used by the project AI features to make better task assignment decisions.
+The application features a **10/10 Premium UI/UX** inspired by modern SaaS platforms like Linear and Raycast, focusing on precision, depth, and micro-interactions.
 
 ## Features
 
-- Dynamic Kanban board with drag-and-drop task movement, approval actions, project roles, and per-column scrolling.
-- AI task generation that creates realistic project tasks and explains suggested assignments based on member skills and workload.
-- AI project risk analysis for bottlenecks, overloaded members, likely delays, and recommendations.
-- AI CV analyzer that extracts skills from PDF resumes using PyMuPDF and Groq Llama 3.3.
-- Profile skill review flow with removable skill chips, manual skill entry, and save-to-profile confirmation.
-- Sprint grouped view for tasks organized by sprint or backlog.
-- Project member management with OWNER, ADMIN, MEMBER, and VIEWER roles.
-- Admin control center for users, projects, tasks, logs, and system-level actions.
-- JWT authentication, route guards, role checks, and backend authorization services.
-- Docker Compose setup for frontend, backend, PostgreSQL, and AI service.
+- **Premium UI/UX**: High-end design with a refined Zinc color palette, geometric radius scale, and multi-layered elevation system.
+- **Dynamic Kanban Board**: Advanced board with glassmorphic headers, real-time health metrics, and smooth drag-and-drop interactions.
+- **AI Task Generation**: Automatically creates realistic project tasks and provides assignment reasoning based on member skills and current workload.
+- **AI Risk Analysis**: Proactively identifies bottlenecks, overloaded members, and potential delays with actionable recommendations.
+- **AI CV Analyzer**: Extracts skills from PDF resumes using PyMuPDF and Groq Llama 3.3 to build rich user profiles.
+- **Real-time Notifications**: Integrated system for project updates, task assignments, and system alerts.
+- **Sprint Management**: Grouped view for organized sprint planning and backlog management.
+- **Role-Based Access Control**: Granular permissions with OWNER, ADMIN, MEMBER, and VIEWER roles.
+- **Admin Control Center**: Centralized management for users, projects, tasks, and system logs.
+- **Dockerized Infrastructure**: Seamless deployment using Docker Compose for all microservices.
+
+## Design Principles
+
+- **Precision**: Strict adherence to a geometric spacing and radius scale.
+- **Depth**: Use of multi-layered shadows and radial gradients to create a professional SaaS feel.
+- **Micro-interactions**: Snappy, tactile feedback on all interactive elements using premium cubic-bezier timings.
+- **Consistency**: Unified design system across authentication, dashboard, and kanban views.
 
 ## Tech Stack
 
 ### Frontend
 
-- Angular 17
-- Standalone Angular component support for the profile workflow
-- Bootstrap 5 and Bootstrap Icons
-- Angular CDK drag and drop
-- STOMP WebSocket client for project refresh events
+- Angular 17 (Standalone Components)
+- Premium CSS System (SCSS Variables, Custom Animations)
+- Bootstrap Icons & Lucide-style SVG icons
+- Angular CDK (Drag & Drop)
+- STOMP WebSocket for real-time synchronization
 
 ### Backend
 
 - Spring Boot 3
-- Spring Security with JWT authentication
-- Spring Data JPA and Hibernate
-- PostgreSQL
-- REST proxy endpoints for AI task generation, risk analysis, and CV skill extraction
+- Spring Security (JWT Authentication)
+- Spring Data JPA (PostgreSQL)
+- REST Proxy for AI microservices
 
 ### AI Service
 
 - Python FastAPI
-- Groq API with Llama 3.3
-- PyMuPDF for PDF text extraction
-- Pydantic response models
-- Strict JSON parsing and normalization for AI responses
+- Groq API (Llama 3.3)
+- PyMuPDF (PDF Processing)
+- Pydantic for strict data validation
 
 ### Infrastructure
 
-- Docker
-- Docker Compose
-- Nginx container for the Angular production build
+- Docker & Docker Compose
+- Nginx (Production runtime for Angular)
 
 ## Project Structure
 
 ```text
 project-manager/
-|-- frontend/                 Angular 17 application
-|   |-- src/app/components/   UI components, including Kanban and Profile
-|   |-- src/app/services/     API services, including AI and auth services
-|   `-- Dockerfile            Angular build and Nginx runtime image
+|-- frontend/                 Premium Angular 17 application
+|   |-- src/styles/           Unified Design System (Variables, Utilities)
+|   |-- src/app/components/   Refined UI Components (Kanban, Task Cards, Auth)
+|   `-- Dockerfile            Optimized Nginx build
 |-- backend/                  Spring Boot API
-|   |-- src/main/java/com/pm/controller/
-|   |-- src/main/java/com/pm/security/
+|   |-- src/main/java/com/pm/config/ Data Seeding & Migrations
 |   `-- Dockerfile
 |-- ai-service/               FastAPI AI microservice
-|   |-- main.py               AI task, risk, and CV extraction endpoints
-|   |-- requirements.txt
+|   |-- main.py               AI task & risk analysis logic
 |   `-- Dockerfile
-|-- docker-compose.yml        Multi-service local environment
-|-- .env                      Local secrets and environment variables
+|-- docker-compose.yml        Full stack orchestration
+|-- .env                      Secrets management
 `-- README.md
 ```
 
@@ -79,35 +81,57 @@ JWT_SECRET=your-long-jwt-secret
 GROQ_API_KEY=your-groq-api-key
 ```
 
-`GROQ_API_KEY` is required for real AI responses. Some AI endpoints include demo/mock fallbacks when the key is missing, but real CV skill extraction should be tested with a valid Groq key.
+## Getting Started
 
-## Run With Docker
+### Prerequisites
 
-Build and start the full stack:
+- Docker and Docker Desktop (Windows/Mac)
+- Git
 
-```bash
-docker compose up --build
-```
+### Run with Docker
 
-Or rebuild a specific service after changes:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/AyhamKsouri/project-manager.git
+   cd project-manager
+   ```
 
-```bash
-docker compose build frontend
-docker compose up -d frontend
-```
+2. **Configure environment**:
+   Copy `.env.example` to `.env` and add your keys.
 
-Service URLs:
+3. **Start the stack**:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+4. **Access the application**:
+   - **Frontend**: [http://localhost:8081](http://localhost:8081)
+   - **Backend**: [http://localhost:8080](http://localhost:8080)
+   - **AI Service**: [http://localhost:8001](http://localhost:8001)
+
+### Default Credentials
+
+- **Admin**: `admin@pm.com` / `password`
+- **Chef (Owner)**: `chef@pm.com` / `password`
+- **Member**: `member@pm.com` / `password`
 
 - Frontend: http://localhost:8081
 - Backend API: http://localhost:8080
 - AI service: http://localhost:8000
 - PostgreSQL: localhost:5432
 
-Seeded demo login:
+Seeded demo logins (password for all: `password`):
 
 ```text
-admin@pm.com / password
+admin@promanager.demo   — Alexandre Rousseau (Admin, recommandé pour la démo jury)
+admin@pm.com            — Administrateur (alias legacy)
+sophie.martin@promanager.demo — Product Owner (NovaShop)
+lucas.bernard@promanager.demo — Backend (NovaShop, FitTrack)
+emma.dubois@promanager.demo   — Frontend (NovaShop, Portail RH)
+thomas.leroy@promanager.demo  — DevOps
 ```
+
+On each backend startup, demo data is reset when `pm.app.reseed-on-startup=true` (default).
 
 ## Testing The CV Skill Analyzer
 

@@ -1,3 +1,6 @@
+# Artifacts
+.codex-artifacts/
+
 # Dependency directories
 node_modules/
 target/

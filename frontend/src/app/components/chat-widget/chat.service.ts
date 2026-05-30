@@ -36,7 +36,7 @@ export class ChatService {
   private historySubject = new BehaviorSubject<Message[]>([
     {
       role: 'assistant',
-      content: '[Result]\nProManager AI Active.\n\n[Analysis]\nI am now integrated as your elite Agile workspace teammate. I am monitoring team velocity, workload distribution, and sprint health.\n\n[Recommendation]\nOpen a project workspace to begin high-performance coordination.'
+      content: '[Résultat]\nAssistant ProManager activé.\n\n[Analyse]\nJe suis prêt à vous aider à suivre la vélocité, la charge de l’équipe et la santé du sprint.\n\n[Recommandation]\nOuvrez un espace projet pour commencer la coordination.'
     }
   ]);
 

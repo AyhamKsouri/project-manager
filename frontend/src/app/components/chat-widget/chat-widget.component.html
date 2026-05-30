@@ -1,15 +1,18 @@
-<button class="chat-launcher" type="button" (click)="toggleOpen()" *ngIf="!isOpen" aria-label="Open ProManager AI">
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-    <path d="m5 3 1 2"/>
-    <path d="m19 3-1 2"/>
-    <path d="m5 21 1-2"/>
-    <path d="m19 21-1-2"/>
-  </svg>
+<button class="chat-launcher" type="button" (click)="toggleOpen()" *ngIf="!isOpen" aria-label="Ouvrir l'assistant ProManager">
+  <span class="launcher-icon-wrap" aria-hidden="true">
+    <svg class="launcher-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+      <path d="m5 3 1 2"/>
+      <path d="m19 3-1 2"/>
+      <path d="m5 21 1-2"/>
+      <path d="m19 21-1-2"/>
+    </svg>
+  </span>
+  <span class="launcher-label">Assistant IA</span>
   <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
 </button>
 
-<section class="chat-panel" *ngIf="isOpen" aria-label="ProManager AI">
+<section class="chat-panel" *ngIf="isOpen" aria-label="Assistant ProManager">
   <header class="chat-header">
     <div class="assistant-title">
       <div class="avatar-wrapper">
@@ -20,9 +23,9 @@
         </span>
         <span class="status-dot"></span>
       </div>
-      <span>ProManager AI</span>
+      <span>Assistant ProManager</span>
     </div>
-    <button class="icon-button" type="button" (click)="minimize()" aria-label="Minimize">
+    <button class="icon-button" type="button" (click)="minimize()" aria-label="Réduire">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M18 12H6"></path>
       </svg>
@@ -51,24 +54,24 @@
           </svg>
         </span>
       </div>
-      <div class="typing-indicator" aria-label="Assistant is typing...">
+      <div class="typing-indicator" aria-label="L'assistant rédige une réponse...">
         <span></span><span></span><span></span>
       </div>
     </div>
   </div>
 
-  <div class="quick-actions" aria-label="Quick actions">
+  <div class="quick-actions" aria-label="Actions rapides">
     <button type="button" *ngFor="let action of quickActions" (click)="useQuickAction(action.message)">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Sprint Health'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Santé du sprint'">
         <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
       </svg>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Optimize Workload'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Charge équipe'">
         <path d="M12 20v-6M6 20V10M18 20V4"></path>
       </svg>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Predict Risks'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Risques à venir'">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path>
       </svg>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Smart Assignment'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" *ngIf="action.label === 'Assignation IA'">
         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
         <circle cx="8.5" cy="7" r="4"></circle>
         <line x1="20" y1="8" x2="20" y2="14"></line>
@@ -85,9 +88,9 @@
         name="message"
         [(ngModel)]="draft"
         autocomplete="off"
-        placeholder="Type a command or ask a question..."
+        placeholder="Posez une question ou demandez une action..."
         [disabled]="isTyping">
-      <button type="submit" [disabled]="!draft.trim() || isTyping" aria-label="Send">
+      <button type="submit" [disabled]="!draft.trim() || isTyping" aria-label="Envoyer">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"></line>
           <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>

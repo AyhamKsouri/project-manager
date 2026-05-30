@@ -29,7 +29,7 @@ export class LoginComponent {
     this.authService.login(this.credentials).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
-        this.error = err.error?.error || 'Invalid email or password';
+        this.error = err.error?.error || 'Adresse e-mail ou mot de passe invalide.';
         this.loading = false;
       }
     });
@@ -40,20 +40,20 @@ export class LoginComponent {
     this.error = '';
     this.authService.register(this.registerData).subscribe({
       next: (res) => {
-        this.success = res.message || 'Registration successful! Please sign in.';
+        this.success = res.message || 'Inscription réussie. Vous pouvez maintenant vous connecter.';
         this.isLoginMode = true;
         this.credentials.email = this.registerData.email;
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.error || 'Registration failed. Please try again.';
+        this.error = err.error?.error || 'Inscription impossible. Veuillez réessayer.';
         this.loading = false;
       }
     });
   }
 
   onForgotPassword(): void {
-    this.success = 'Password reset instructions have been sent to your email (Demo Mode).';
+    this.success = 'Les instructions de réinitialisation ont été envoyées à votre adresse e-mail (mode démo).';
     setTimeout(() => this.success = '', 5000);
   }
 }

@@ -1,5 +1,21 @@
 :root {
-  /* Modern SaaS Palette (Zinc/Slate) */
+  /* design cleanup — unified design tokens */
+
+  /* Surfaces */
+  --canvas: #f7f5f0;
+  --surface: #ffffff;
+  --surface-soft: #fbfaf7;
+  --surface-muted: #f4f1ea;
+
+  /* Typography */
+  --ink: #111827;
+  --muted-ink: #667085;
+  --text-main: var(--ink);
+  --text-description: var(--muted-ink);
+  --text-muted: var(--muted-ink);
+  --text-dim: #98a2b3;
+
+  /* Neutral scale */
   --zinc-50: #fafafa;
   --zinc-100: #f4f4f5;
   --zinc-200: #e4e4e7;
@@ -12,32 +28,83 @@
   --zinc-900: #18181b;
   --zinc-950: #09090b;
 
-  /* Brand Colors */
-  --primary-indigo: #4f46e5;
-  --primary-indigo-hover: #4338ca;
-  --primary-indigo-soft: rgba(79, 70, 229, 0.06);
-  --success-modern: #10b981;
-  
-  /* Semantic Colors */
-  --bg-app: #ffffff;
-  --bg-modal: #ffffff;
-  --bg-secondary: var(--zinc-50);
-  --border-base: var(--zinc-200);
-  --text-main: var(--zinc-900);
-  --text-description: var(--zinc-600);
-  --text-dim: var(--zinc-400);
+  /* Brand */
+  --primary-indigo: #3657f5;
+  --primary-indigo-hover: #2945d9;
+  --primary-indigo-soft: rgba(54, 87, 245, 0.1);
+  --primary-indigo-strong: #162a9f;
+  --bg-light-indigo: var(--primary-indigo-soft);
+  --accent-coral: #f9735b;
+  --accent-cyan: #06b6d4;
+  --accent-gold: #f4b740;
 
-  /* Refined System */
+  /* Semantic feedback */
+  --success-modern: #10b981;
+  --success-modern-hover: #059669;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+  --success-text: var(--success-modern);
+
+  --warning-bg: #fffbeb;
+  --warning-border: #fde68a;
+  --warning-text: #d97706;
+
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+  --danger-text: #dc2626;
+  --danger-strong: #b42318;
+
+  --info-bg: #eff6ff;
+  --info-border: #dbeafe;
+  --info-text: #1d4ed8;
+
+  /* Borders & backgrounds */
+  --bg-app: var(--surface);
+  --bg-modal: #ffffff;
+  --bg-secondary: var(--surface-soft);
+  --border-base: #e7e3da;
+  --border-color: var(--border-base);
+  --border-subtle: rgba(17, 24, 39, 0.08);
+
+  /* Status (kanban columns) */
+  --status-todo: #94a3b8;
+  --status-progress: var(--primary-indigo);
+  --status-review: var(--accent-gold);
+  --status-completed: var(--success-modern);
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Radii */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 20px;
 
-  /* Multi-layered Shadows (Linear Style) */
-  --shadow-premium: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.02), 0 12px 24px rgba(0, 0, 0, 0.08);
-  --shadow-hover: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.04), 0 20px 40px rgba(0, 0, 0, 0.12);
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.04), 0 1px 1px rgba(17, 24, 39, 0.03);
+  --shadow-md: 0 10px 24px rgba(27, 35, 61, 0.08);
+  --shadow-premium: 0 1px 2px rgba(17, 24, 39, 0.04), 0 16px 42px rgba(27, 35, 61, 0.12);
+  --shadow-hover: 0 1px 2px rgba(17, 24, 39, 0.04), 0 22px 55px rgba(27, 35, 61, 0.16);
 
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.05);
-  --glass-blur: 16px;
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(17, 24, 39, 0.08);
+  --glass-blur: 18px;
+
+  /* Typography scale */
+  --text-xs: 0.7rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 }

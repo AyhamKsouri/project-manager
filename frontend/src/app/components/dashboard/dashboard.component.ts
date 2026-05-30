@@ -86,7 +86,7 @@ export class DashboardComponent implements OnInit {
         this.projects.push(project);
         this.showCreateModal = false;
         this.newProject = { name: '', description: '', methodology: 'Agile' };
-        this.toastService.success('Project created successfully');
+        this.toastService.success('Projet créé avec succès');
       },
       error: (err) => {
         this.toastService.error(err.error?.message || err.message || 'Failed to create project');
